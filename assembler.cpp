@@ -4,6 +4,10 @@ using namespace std;
 map<string, int> opcode = {
     {"ADD", 1}, {"SUB", 2}, {"MULT", 3}, {"DIV", 4}, {"JMP", 5}, {"JMPN", 6}, {"JMPP", 7}, {"JMPZ", 8}, {"COPY", 9}, {"LOAD", 10}, {"STORE", 11}, {"INPUT", 12}, {"OUTPUT", 13}, {"STOP", 14}};
 
+vector<string> instrucoes = {
+        "ADD", "SUB", "MULT", "DIV", "JMP", "JMPN", "JMPP", "JMPZ",
+        "COPY", "LOAD", "STORE", "INPUT", "OUTPUT", "STOP"
+};
 map<string, int> mnt;
 vector<string> mdt;
 
@@ -79,23 +83,63 @@ void tiraComentario(string &linha)
         linha = linha.substr(0, pos_comentario);
     }
 }
+
+void expand_arguments_macro ();
 vector<string> expandMacros(vector<string> cod)
 {
+    vector<string> expanded_code;
     int linha_mdt = 0;
     bool macro = false;
+    vector <string> argumentos;
     for (string linha : cod)
     {
         vector<string> tokensMacro = getTokens(linha);
-        string primeiroToken = tokensMacro[0];
-        if (primeiroToken[primeiroToken.size() - 1] == ':')
-        {
-            string nomeLabel = primeiroToken.substr(0, primeiroToken.size() - 1);
-            if (tokensMacro[1] == "MACRO")
-            {
-                mnt.insert({nomeLabel, linha_mdt});
+        if (macro){
+            mdt[linha_mdt] = tokensMacro[0];
+            linha_mdt++;
+            if (tokensMacro[0]=="ENDMACRO"){
+                macro=false;
             }
         }
+        else {
+            string primeiroToken = tokensMacro[0];
+            if (tokensMacro[1]=="MACRO")
+            {
+                string nomeLabel = primeiroToken.substr(0, primeiroToken.size() - 1);
+                mnt.insert({nomeLabel, linha_mdt});
+                    macro= true;        
+                for (int i=2; i<tokensMacro.size(); i++){
+                    argumentos.push_back(tokensMacro[i]);
+                }
+            }
+            else {
+                string tokenBusca;
+                if (primeiroToken[primeiroToken.size() - 1] == ':'){
+                    tokenBusca= tokensMacro[1];
+                }
+                else {
+                    tokenBusca = tokensMacro[0];
+                }
+                auto busca = find(instrucoes.begin(), instrucoes.end(), tokenBusca);
+                if (busca != instrucoes.end()) {
+                    expanded_code.push_back(linha);
+                } 
+                else {
+                    if (mnt.find(labelName) != mnt.end()) {
+                        int pos_mdt=mnt.find(labelName);
+                        string expand_linha = mdt  [pos_mdt];
+                        while (expand_linha!="ENDMACRO"){
+                            
+                        }
+                    } 
+                    else {
+                        expanded_code.push_back(linha);
+                    }                 
+                }
+        }
+
     }
+}
 }
 vector<string> preProcessamento(vector<string> codigo)
 {
