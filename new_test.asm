@@ -1,0 +1,4 @@
+INPUT a
+        OUTPUT a 
+    STOP ;PAROU 
+    A: SPACE ;COMMENT

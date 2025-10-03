@@ -5,9 +5,9 @@ map<string, int> opcode = {
     {"ADD", 1}, {"SUB", 2}, {"MULT", 3}, {"DIV", 4}, {"JMP", 5}, {"JMPN", 6}, {"JMPP", 7}, {"JMPZ", 8}, {"COPY", 9}, {"LOAD", 10}, {"STORE", 11}, {"INPUT", 12}, {"OUTPUT", 13}, {"STOP", 14}};
 
 vector<string> instrucoes = {
-        "ADD", "SUB", "MULT", "DIV", "JMP", "JMPN", "JMPP", "JMPZ",
-        "COPY", "LOAD", "STORE", "INPUT", "OUTPUT", "STOP"
-};
+    "ADD", "SUB", "MULT", "DIV", "JMP", "JMPN", "JMPP", "JMPZ",
+    "COPY", "LOAD", "STORE", "INPUT", "OUTPUT", "STOP"};
+    
 map<string, int> mnt;
 vector<string> mdt;
 
@@ -84,62 +84,124 @@ void tiraComentario(string &linha)
     }
 }
 
-void expand_arguments_macro ();
 vector<string> expandMacros(vector<string> cod)
 {
     vector<string> expanded_code;
     int linha_mdt = 0;
     bool macro = false;
-    vector <string> argumentos;
+    vector<string> argumentos;
     for (string linha : cod)
     {
         vector<string> tokensMacro = getTokens(linha);
-        if (macro){
-            mdt[linha_mdt] = tokensMacro[0];
+        if (macro)
+        {
+            for (int i = 0; i < argumentos.size(); i++)
+            {
+                string arg = argumentos[i];
+                string arg_positional = "#" + to_string(i + 1);
+                vector<string> tokens = getTokens(linha);
+                for (int j = 0; j < tokens.size(); j++)
+                {
+                    if (tokens[j] == arg)
+                    {
+                        tokens[j] = arg_positional;
+                    }
+                }
+                linha = juntaTokens(tokens);
+            }
+            mdt.push_back(linha);
             linha_mdt++;
-            if (tokensMacro[0]=="ENDMACRO"){
-                macro=false;
+            if (!tokensMacro.empty() && tokensMacro[0] == "ENDMACRO")
+            {
+                macro = false;
+                argumentos.clear();
             }
         }
-        else {
+        else
+        {
+            if (tokensMacro.empty())
+                continue;
             string primeiroToken = tokensMacro[0];
-            if (tokensMacro[1]=="MACRO")
+            if (tokensMacro.size() > 1 && tokensMacro[1] == "MACRO")
             {
                 string nomeLabel = primeiroToken.substr(0, primeiroToken.size() - 1);
                 mnt.insert({nomeLabel, linha_mdt});
-                    macro= true;        
-                for (int i=2; i<tokensMacro.size(); i++){
+                macro = true;
+                argumentos.clear();
+                for (int i = 2; i < tokensMacro.size(); i++)
+                {
                     argumentos.push_back(tokensMacro[i]);
                 }
             }
-            else {
+            else
+            {
                 string tokenBusca;
-                if (primeiroToken[primeiroToken.size() - 1] == ':'){
-                    tokenBusca= tokensMacro[1];
+                int label_def = 0;
+                if (primeiroToken[primeiroToken.size() - 1] == ':')
+                {
+                    if (tokensMacro.size() > 1)
+                    {
+                        tokenBusca = tokensMacro[1];
+                        label_def = 1;
+                    }
+                    else
+                    {
+                        continue;
+                    }
                 }
-                else {
+                else
+                {
                     tokenBusca = tokensMacro[0];
                 }
                 auto busca = find(instrucoes.begin(), instrucoes.end(), tokenBusca);
-                if (busca != instrucoes.end()) {
+                if (busca != instrucoes.end())
+                {
                     expanded_code.push_back(linha);
-                } 
-                else {
-                    if (mnt.find(labelName) != mnt.end()) {
-                        int pos_mdt=mnt.find(labelName);
-                        string expand_linha = mdt  [pos_mdt];
-                        while (expand_linha!="ENDMACRO"){
-                            
-                        }
-                    } 
-                    else {
-                        expanded_code.push_back(linha);
-                    }                 
                 }
-        }
+                else
+                {
+                    if (mnt.find(tokenBusca) != mnt.end())
+                    {
+                        int pos_mdt = mnt[tokenBusca];
+                        vector<string> local_args;
+                        for (int j = 1 + label_def; j < tokensMacro.size(); j++)
+                        {
+                            local_args.push_back(tokensMacro[j]);
+                        }
+                        string expand_linha = mdt[pos_mdt];
+                        while (expand_linha != "ENDMACRO")
+                        {
+                            for (int arg = 0; arg < local_args.size(); arg++)
+                            {
+                                string local_arg = "#" + to_string(arg + 1);
 
+                                vector<string> tokens = getTokens(expand_linha);
+                                for (int j = 0; j < tokens.size(); j++)
+                                {
+                                    if (tokens[j] == local_arg)
+                                    {
+                                        tokens[j] = local_args[arg];
+                                    }
+                                }
+                                expand_linha = juntaTokens(tokens);
+                            }
+                            expanded_code.push_back(expand_linha);
+                            pos_mdt++;
+                            if (pos_mdt >= mdt.size())
+                                break;
+                            expand_linha = mdt[pos_mdt];
+                        }
+                        argumentos.clear();
+                    }
+                    else
+                    {
+                        expanded_code.push_back(linha);
+                    }
+                }
+            }
+        }
     }
-}
+    return expanded_code;
 }
 vector<string> preProcessamento(vector<string> codigo)
 {
@@ -155,6 +217,7 @@ vector<string> preProcessamento(vector<string> codigo)
             codigoExpandido.push_back(linha);
         }
     }
+    codigoExpandido = expandMacros(codigoExpandido);
     return codigoExpandido;
 }
 
