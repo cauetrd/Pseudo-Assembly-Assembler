@@ -8,8 +8,8 @@ vector<string> instrucoes = {
     "ADD", "SUB", "MULT", "DIV", "JMP", "JMPN", "JMPP", "JMPZ",
     "COPY", "LOAD", "STORE", "INPUT", "OUTPUT", "STOP"};
 
-map<string, int> mnt;
-vector<string> mdt;
+map<string, int> mnt; //mapeia o nome da macro para a linha da mdt que o corpo dela começa
+vector<string> mdt; 
 
 struct Simbolo
 {
@@ -19,6 +19,20 @@ struct Simbolo
 };
 
 vector<Simbolo> tabela_simbolos;
+
+//verifica se tem erro na label (começa com numero ou tem algum caractere especial diferente de '_')
+bool verificaErroLabel(string label)
+{
+    if (isdigit (label[0])){
+        return true;
+    }
+    for (char carac : label){
+        if (!isdigit(carac) && !isalpha(carac) && !(carac=='_')){
+            return true;
+        }
+    }
+    return false;
+}
 
 void maisculas(string &linha)
 {
@@ -40,10 +54,7 @@ int achaChar(string &str, char carac)
     return -1;
 }
 
-bool verificaErroLabel(string label)
-{
-    return false;
-}
+
 vector<string> getTokens(string &linha)
 {
     vector<string> tokens;
