@@ -294,8 +294,8 @@ vector<int> o2(vector<int> codigoPendencias, vector<string> &pre)
 
 int main(int argc, char *argv[])
 {
-    string nome_arquivo = argv[1];
-    ifstream arquivo(nome_arquivo);
+    string nome_arquivo_entrada = argv[1];
+    ifstream arquivo(nome_arquivo_entrada);
     vector<string> codigo;
     string linha;
     while (getline(arquivo, linha))
@@ -304,10 +304,22 @@ int main(int argc, char *argv[])
     }
     arquivo.close();
     vector<string> codigoExpandido = preProcessamento(codigo);
+    string nome_arquivo_pre = nome_arquivo_entrada;
+    size_t extensao = nome_arquivo_pre.find_last_of(".");
+    if (extensao != std::string::npos) {
+        nome_arquivo_pre = nome_arquivo_pre.substr(0, extensao); 
+    }
+    nome_arquivo_pre += ".pre";
+    ofstream saida_pre(nome_arquivo_pre);  
 
-    for (const string &linha : codigoExpandido)
+    for (string linha : codigoExpandido){
+        saida_pre << linha;
+        saida_pre <<"\n";
+    }
+    saida_pre.close();
+    /*for (const string &linha : codigoExpandido)
     {
         cout << linha << "\n";
-    }
+    }*/
     return 0;
 }
