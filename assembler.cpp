@@ -7,9 +7,18 @@ map<string, int> opcode = {
 vector<string> instrucoes = {
     "ADD", "SUB", "MULT", "DIV", "JMP", "JMPN", "JMPP", "JMPZ",
     "COPY", "LOAD", "STORE", "INPUT", "OUTPUT", "STOP"};
-    
+
 map<string, int> mnt;
 vector<string> mdt;
+
+struct Simbolo
+{
+    string nome;
+    int valor;
+    int pendencia;
+};
+
+vector<Simbolo> tabela_simbolos;
 
 void maisculas(string &linha)
 {
@@ -31,6 +40,10 @@ int achaChar(string &str, char carac)
     return -1;
 }
 
+bool verificaErroLabel(string label)
+{
+    return false;
+}
 vector<string> getTokens(string &linha)
 {
     vector<string> tokens;
@@ -84,7 +97,43 @@ void tiraComentario(string &linha)
     }
 }
 
-vector<string> expandMacros(vector<string> cod)
+vector<string> expandeMacro(string &nome, vector<string> &argumentos)
+{
+    vector<string> macroExpandida;
+    if (mnt.find(nome) == mnt.end())
+    {
+        return macroExpandida;
+    }
+    int pos_mdt = mnt[nome];
+    string expand_linha = mdt[pos_mdt];
+    while (expand_linha != "ENDMACRO")
+    {
+        string linha_expandida = expand_linha;
+        for (int arg = 0; arg < argumentos.size(); arg++)
+        {
+            string local_arg = "#" + to_string(arg + 1);
+            vector<string> tokens = getTokens(linha_expandida);
+            for (int j = 0; j < tokens.size(); j++)
+            {
+                if (tokens[j] == local_arg)
+                {
+                    tokens[j] = argumentos[arg];
+                }
+            }
+            linha_expandida = juntaTokens(tokens);
+        }
+        macroExpandida.push_back(linha_expandida);
+        pos_mdt++;
+        if (pos_mdt >= mdt.size())
+        {
+            break;
+        }
+        expand_linha = mdt[pos_mdt];
+    }
+    return macroExpandida;
+}
+
+vector<string> expandeTodasMacros(vector<string> cod)
 {
     vector<string> expanded_code;
     int linha_mdt = 0;
@@ -153,8 +202,8 @@ vector<string> expandMacros(vector<string> cod)
                 {
                     tokenBusca = tokensMacro[0];
                 }
-                auto busca = find(instrucoes.begin(), instrucoes.end(), tokenBusca);
-                if (busca != instrucoes.end())
+                auto buscaInstrucao = find(instrucoes.begin(), instrucoes.end(), tokenBusca);
+                if (buscaInstrucao != instrucoes.end())
                 {
                     expanded_code.push_back(linha);
                 }
@@ -162,34 +211,15 @@ vector<string> expandMacros(vector<string> cod)
                 {
                     if (mnt.find(tokenBusca) != mnt.end())
                     {
-                        int pos_mdt = mnt[tokenBusca];
                         vector<string> local_args;
                         for (int j = 1 + label_def; j < tokensMacro.size(); j++)
                         {
                             local_args.push_back(tokensMacro[j]);
                         }
-                        string expand_linha = mdt[pos_mdt];
-                        while (expand_linha != "ENDMACRO")
+                        vector<string> linha_expandida = expandeMacro(tokenBusca, local_args);
+                        for (string linha : linha_expandida)
                         {
-                            for (int arg = 0; arg < local_args.size(); arg++)
-                            {
-                                string local_arg = "#" + to_string(arg + 1);
-
-                                vector<string> tokens = getTokens(expand_linha);
-                                for (int j = 0; j < tokens.size(); j++)
-                                {
-                                    if (tokens[j] == local_arg)
-                                    {
-                                        tokens[j] = local_args[arg];
-                                    }
-                                }
-                                expand_linha = juntaTokens(tokens);
-                            }
-                            expanded_code.push_back(expand_linha);
-                            pos_mdt++;
-                            if (pos_mdt >= mdt.size())
-                                break;
-                            expand_linha = mdt[pos_mdt];
+                            expanded_code.push_back(linha);
                         }
                         argumentos.clear();
                     }
@@ -217,8 +247,38 @@ vector<string> preProcessamento(vector<string> codigo)
             codigoExpandido.push_back(linha);
         }
     }
-    codigoExpandido = expandMacros(codigoExpandido);
+    codigoExpandido = expandeTodasMacros(codigoExpandido);
     return codigoExpandido;
+}
+
+vector<int> o2(vector<int> codigoPendencias, vector<string> &pre)
+{
+    vector<int> codigoResolvido = codigoPendencias;
+    int endereco;
+    for (Simbolo s : tabela_simbolos)
+    {
+        endereco = s.pendencia;
+        if (s.valor == -1)
+        {
+            while (endereco != -1)
+            {
+                int temp = codigoResolvido[endereco];
+                codigoResolvido[endereco] = s.valor;
+                pre[endereco] += " erro semântico";
+                endereco = temp;
+            }
+        }
+        else
+        {
+            while (endereco != -1)
+            {
+                int temp = codigoResolvido[endereco];
+                codigoResolvido[endereco] = s.valor;
+                endereco = temp;
+            }
+        }
+    }
+    return codigoResolvido;
 }
 
 int main(int argc, char *argv[])
