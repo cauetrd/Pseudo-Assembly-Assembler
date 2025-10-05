@@ -4,4 +4,4 @@ stoP
 R:
 JMP A
     a: space
-    b: space
+    b: space ; comentario
