@@ -54,33 +54,47 @@ int achaChar(string &str, char carac)
     return -1;
 }
 
+string tiraVirgula (string arg){
+    int temVirgula = achaChar(arg, ',');
+    if (temVirgula == arg.size()-1){
+        arg = arg.substr(0, arg.size() - 1);
+    }
+    return arg;
+}
 
 vector<string> getTokens(string &linha)
 {
     vector<string> tokens;
     int token_inicio = 0;
-    int pos_espaco = achaChar(linha, ' ');
-    while (pos_espaco != -1)
+    while (token_inicio < linha.size())
     {
-        if (!(linha.substr(token_inicio, pos_espaco - token_inicio)).empty())
+        string current_str = linha.substr(token_inicio);
+
+        int pos_space = achaChar(current_str, ' ');
+        int pos_tab   = achaChar(current_str, '\t');
+        int pos_sep;
+        if (pos_space == -1 && pos_tab == -1)
         {
-            tokens.push_back(linha.substr(token_inicio, pos_espaco - token_inicio));
+            if (!current_str.empty())
+                tokens.push_back(current_str);
+            break;
         }
-        token_inicio = pos_espaco + 1;
-        string prox_string = linha.substr(token_inicio);
-        int prox_espaco = achaChar(prox_string, ' ');
-        if (prox_espaco != -1)
+        else if (pos_space == -1)
         {
-            pos_espaco = token_inicio + prox_espaco;
+            pos_sep = pos_tab;
+        }
+        else if (pos_tab == -1)
+        {
+            pos_sep = pos_space;
         }
         else
         {
-            pos_espaco = -1;
+            pos_sep = min(pos_space, pos_tab);
         }
-    }
-    if (!(linha.substr(token_inicio)).empty())
-    {
-        tokens.push_back(linha.substr(token_inicio));
+        if (pos_sep > 0){
+            tokens.push_back(current_str.substr(0, pos_sep));
+        }
+        token_inicio += pos_sep + 1;
     }
     return tokens;
 }
@@ -108,7 +122,7 @@ void tiraComentario(string &linha)
     }
 }
 
-vector<string> expandeMacro(string &nome, vector<string> &argumentos)
+vector<string> expandeMacro(string &nome, vector<string> argumentos)
 {
     vector<string> macroExpandida;
     if (mnt.find(nome) == mnt.end())
@@ -158,6 +172,7 @@ vector<string> expandeTodasMacros(vector<string> cod)
             for (int i = 0; i < argumentos.size(); i++)
             {
                 string arg = argumentos[i];
+                arg = tiraVirgula(arg);
                 string arg_positional = "#" + to_string(i + 1);
                 vector<string> tokens = getTokens(linha);
                 for (int j = 0; j < tokens.size(); j++)
@@ -190,7 +205,9 @@ vector<string> expandeTodasMacros(vector<string> cod)
                 argumentos.clear();
                 for (int i = 2; i < tokensMacro.size(); i++)
                 {
-                    argumentos.push_back(tokensMacro[i]);
+                    string current_arg = tokensMacro[i];
+                    current_arg = tiraVirgula(current_arg);
+                    argumentos.push_back(current_arg);
                 }
             }
             else
@@ -206,6 +223,7 @@ vector<string> expandeTodasMacros(vector<string> cod)
                     }
                     else
                     {
+                        expanded_code.push_back(linha);
                         continue;
                     }
                 }
@@ -225,7 +243,9 @@ vector<string> expandeTodasMacros(vector<string> cod)
                         vector<string> local_args;
                         for (int j = 1 + label_def; j < tokensMacro.size(); j++)
                         {
-                            local_args.push_back(tokensMacro[j]);
+                            string current_arg = tokensMacro[j];
+                            current_arg = tiraVirgula (current_arg);
+                            local_args.push_back(current_arg);
                         }
                         vector<string> linha_expandida = expandeMacro(tokenBusca, local_args);
                         for (string linha : linha_expandida)
@@ -247,16 +267,31 @@ vector<string> expandeTodasMacros(vector<string> cod)
 vector<string> preProcessamento(vector<string> codigo)
 {
     vector<string> codigoExpandido;
+    string label;
     for (string linha : codigo)
     {
         maisculas(linha);
         tiraComentario(linha);
         vector<string> tokens = getTokens(linha);
         linha = juntaTokens(tokens);
-        if (!linha.empty())
-        {
-            codigoExpandido.push_back(linha);
+        if (linha.empty()) {
+            continue;
         }
+        string primeiroToken = tokens[0];
+        if (tokens.size() == 1 && primeiroToken.size() > 0 && primeiroToken[primeiroToken.size()-1] == ':')
+        {
+            label += tokens[0] + " ";
+            continue;
+        }
+        if (!label.empty())
+        {
+            linha = label + linha;
+            label = "";
+        }
+        codigoExpandido.push_back(linha);
+    }
+    if (!label.empty()){
+        codigoExpandido.push_back(label);
     }
     codigoExpandido = expandeTodasMacros(codigoExpandido);
     return codigoExpandido;
@@ -265,27 +300,27 @@ vector<string> preProcessamento(vector<string> codigo)
 vector<int> o2(vector<int> codigoPendencias, vector<string> &pre)
 {
     vector<int> codigoResolvido = codigoPendencias;
-    int endereco;
+    int prox_pendencia;
     for (Simbolo s : tabela_simbolos)
     {
-        endereco = s.pendencia;
+        prox_pendencia = s.pendencia;
         if (s.valor == -1)
         {
-            while (endereco != -1)
+            while (prox_pendencia != -1)
             {
-                int temp = codigoResolvido[endereco];
-                codigoResolvido[endereco] = s.valor;
-                pre[endereco] += " erro semântico";
-                endereco = temp;
+                int temp = codigoResolvido[prox_pendencia];
+                codigoResolvido[prox_pendencia] = s.valor;
+                pre[prox_pendencia] += " erro semântico";
+                prox_pendencia = temp;
             }
         }
         else
         {
-            while (endereco != -1)
+            while (prox_pendencia != -1)
             {
-                int temp = codigoResolvido[endereco];
-                codigoResolvido[endereco] = s.valor;
-                endereco = temp;
+                int temp = codigoResolvido[prox_pendencia];
+                codigoResolvido[prox_pendencia] = s.valor;
+                prox_pendencia = temp;
             }
         }
     }
@@ -304,22 +339,22 @@ int main(int argc, char *argv[])
     }
     arquivo.close();
     vector<string> codigoExpandido = preProcessamento(codigo);
-    string nome_arquivo_pre = nome_arquivo_entrada;
+    /*string nome_arquivo_pre = nome_arquivo_entrada;
     size_t extensao = nome_arquivo_pre.find_last_of(".");
     if (extensao != std::string::npos) {
         nome_arquivo_pre = nome_arquivo_pre.substr(0, extensao); 
-    }
-    nome_arquivo_pre += ".pre";
-    ofstream saida_pre(nome_arquivo_pre);  
+    }*/
+    /*nome_arquivo_pre += ".pre";
+    ofstream saida_pre(nome_arquivo_pre);*/  
 
-    for (string linha : codigoExpandido){
+    /*for (string linha : codigoExpandido){
         saida_pre << linha;
         saida_pre <<"\n";
     }
-    saida_pre.close();
-    /*for (const string &linha : codigoExpandido)
+    saida_pre.close();*/
+    for (string linha : codigoExpandido)
     {
         cout << linha << "\n";
-    }*/
+    }
     return 0;
 }
