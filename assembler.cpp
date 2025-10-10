@@ -20,7 +20,50 @@ struct Simbolo
 
 vector<Simbolo> tabela_simbolos;
 
-//verifica se tem erro na label (começa com numero ou tem algum caractere especial diferente de '_')
+
+string normalizaExpressao(string &linha) {
+    string resultado = "";
+    
+    for (int i = 0; i < linha.size(); i++) {
+        char atual = linha[i];
+        
+
+        if (atual == '+' || atual == '-') {
+            while (!resultado.empty() && resultado.back() == ' ') {
+                resultado.pop_back();
+            }
+            
+ 
+            resultado += " ";
+            resultado += atual;
+            resultado += " ";
+            
+
+            while (i + 1 < linha.size() && linha[i + 1] == ' ') {
+                i++;
+            }
+        } else if (atual == ',') {
+
+            while (!resultado.empty() && resultado.back() == ' ') {
+                resultado.pop_back();
+            }
+            
+
+            resultado += ", ";
+            
+
+            while (i + 1 < linha.size() && linha[i + 1] == ' ') {
+                i++;
+            }
+        } else {
+            resultado += atual;
+        }
+    }
+    
+    return resultado;
+}
+
+
 bool verificaErroLabel(string label)
 {
     if (isdigit (label[0])){
@@ -272,6 +315,10 @@ vector<string> preProcessamento(vector<string> codigo)
     {
         maisculas(linha);
         tiraComentario(linha);
+        
+
+        linha = normalizaExpressao(linha);
+        
         vector<string> tokens = getTokens(linha);
         linha = juntaTokens(tokens);
         if (linha.empty()) {
