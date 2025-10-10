@@ -1,0 +1,17 @@
+; Teste de normalização de expressões
+ADD N + 2
+SUB M+3
+MULT A - 5
+DIV B-7
+JMP LOOP + 1
+LOAD X + 10
+STORE Y-15
+COPY A + 2, B - 3
+INPUT VAR + 5
+OUTPUT RESULT-2
+STOP
+
+N: CONST 10
+M: CONST 20
+A: SPACE 5
+B: SPACE
