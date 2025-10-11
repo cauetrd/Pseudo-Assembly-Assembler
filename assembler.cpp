@@ -439,41 +439,22 @@ vector<string> o1(vector<string> &pre){
             }
         }
     }
-    for(auto x : saida) cout << x << " ";
-    cout << "\n";
     return saida;
 }
 
 
-// vector<int> o2(vector<int> codigoPendencias, vector<string> &pre)
-// {
-//     vector<int> codigoResolvido = codigoPendencias;
-//     int prox_pendencia;
-//     for (Simbolo s : tabela_simbolos)
-//     {
-//         prox_pendencia = s.pendencia;
-//         if (s.valor == -1)
-//         {
-//             while (prox_pendencia != -1)
-//             {
-//                 int temp = codigoResolvido[prox_pendencia];
-//                 codigoResolvido[prox_pendencia] = s.valor;
-//                 pre[prox_pendencia] += " erro semântico";
-//                 prox_pendencia = temp;
-//             }
-//         }
-//         else
-//         {
-//             while (prox_pendencia != -1)
-//             {
-//                 int temp = codigoResolvido[prox_pendencia];
-//                 codigoResolvido[prox_pendencia] = s.valor;
-//                 prox_pendencia = temp;
-//             }
-//         }
-//     }
-//     return codigoResolvido;
-// }
+vector<string> o2(vector<string> codigoPendencias, vector<string> &pre){
+    vector<string> saida = codigoPendencias;
+    for(auto [nome, simbolo] : tabela_simbolos){
+        int pendencia = simbolo.pendencia;
+        int endereco = simbolo.endereco;
+        while(pendencia != -1){
+            saida[pendencia] = to_string(endereco);
+            pendencia = stoi(codigoPendencias[pendencia]);
+        }
+    }
+    return saida;
+}
 
 int main(int argc, char *argv[])
 {
@@ -488,6 +469,11 @@ int main(int argc, char *argv[])
     arquivo.close();
     vector<string> codigoExpandido = preProcessamento(codigo);
     vector<string> codigoO1 = o1(codigoExpandido);
+    for(auto x : codigoO1) cout << x << " ";
+    cout << "\n";
+    vector<string> codigoO2 = o2(codigoO1, codigoExpandido);
+    for(auto x : codigoO2) cout << x << " ";
+    cout << "\n";
     /*string nome_arquivo_pre = nome_arquivo_entrada;
     size_t extensao = nome_arquivo_pre.find_last_of(".");
     if (extensao != std::string::npos) {
