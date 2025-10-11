@@ -369,6 +369,8 @@ vector<string> o1(vector<string> &pre){
     for(string linha : pre){
         vector<string> tokens = getTokens(linha);
         string label = tokens[0];
+       
+       
         if(label[(int) label.size()-1] == ':'){ //definição de variável
             label = label.substr(0, (int) label.size()-1); //tirar ':'
 
@@ -381,34 +383,36 @@ vector<string> o1(vector<string> &pre){
             else{
                 tabela_simbolos[label].endereco = endereco;
             }
-            string valor_token = "";
-            if(tokens[1]=="SPACE"){ 
-                int qtd_zeros = 1;
-                if(tokens.size()>2){
-                    qtd_zeros = stoi(tokens[2]);
-                }
-                for(int i=0; i<qtd_zeros; i++){
-                    valor_token += "0";
-                }
-                saida.push_back(valor_token);
+            tokens.erase(tokens.begin());
+        }
+        
+        
+
+        string valor_token = "";
+        string instrucao = tokens[0];
+        if(instrucao=="SPACE"){ 
+            int qtd_zeros = 1;
+            if(tokens.size()>1){
+                qtd_zeros = stoi(tokens[1]);
             }
-            else if(tokens[1]=="CONST"){
-                valor_token = tokens[2];
-                saida.push_back(valor_token);
+            for(int i=0; i<qtd_zeros; i++){
+                valor_token += "0";
             }
-            else{
-                cout << "erro nao é space nem const; endereço " << endereco << "\n";
-            }
+            saida.push_back(valor_token);
             endereco++;
         }
-        else{ //instrução
-            string instrucao = tokens[0];
-                    if(opcode.find(instrucao) == opcode.end()){
+        else if(instrucao=="CONST"){
+            valor_token = tokens[1];
+            saida.push_back(valor_token);
+            endereco++;
+        }
+        else{ //instrução}
+        if(opcode.find(instrucao) == opcode.end()){
                         cout << "erro instrução inválida; endereço " << endereco << "\n";
                         continue;
-                    }
+                    }  
 
-            string valor_token = to_string(opcode[instrucao]);
+            valor_token = to_string(opcode[instrucao]);
             saida.push_back(valor_token);
             endereco++;
             
