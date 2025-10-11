@@ -13,12 +13,11 @@ vector<string> mdt;
 
 struct Simbolo
 {
-    string nome;
-    int valor;
+    int endereco;
     int pendencia;
 };
 
-vector<Simbolo> tabela_simbolos;
+map<string,Simbolo> tabela_simbolos;
 
 
 string normalizaExpressao(string &linha) {
@@ -344,35 +343,137 @@ vector<string> preProcessamento(vector<string> codigo)
     return codigoExpandido;
 }
 
-vector<int> o2(vector<int> codigoPendencias, vector<string> &pre)
-{
-    vector<int> codigoResolvido = codigoPendencias;
-    int prox_pendencia;
-    for (Simbolo s : tabela_simbolos)
-    {
-        prox_pendencia = s.pendencia;
-        if (s.valor == -1)
-        {
-            while (prox_pendencia != -1)
-            {
-                int temp = codigoResolvido[prox_pendencia];
-                codigoResolvido[prox_pendencia] = s.valor;
-                pre[prox_pendencia] += " erro semântico";
-                prox_pendencia = temp;
+string valorDaVariavelNoEndereco(string& var, int endereco){
+        string saida;
+        if( tabela_simbolos.find(var) == tabela_simbolos.end() ){ //se o símbolo ainda não está na tabela
+            Simbolo s;
+            s.endereco = -1;
+            s.pendencia = endereco;
+            tabela_simbolos.insert({var, s});
+            saida = "-1"; //pendência
+        }else{
+            if(tabela_simbolos[var].endereco != -1){ //se o símbolo já foi definido
+                saida = to_string(tabela_simbolos[var].endereco);
+            }else{
+                saida = to_string(tabela_simbolos[var].pendencia);
+                tabela_simbolos[var].pendencia = endereco;
             }
         }
-        else
-        {
-            while (prox_pendencia != -1)
-            {
-                int temp = codigoResolvido[prox_pendencia];
-                codigoResolvido[prox_pendencia] = s.valor;
-                prox_pendencia = temp;
+        return saida;
+}
+
+vector<string> o1(vector<string> &pre){
+    vector<string> saida;
+    int endereco = 0;
+
+    for(string linha : pre){
+        vector<string> tokens = getTokens(linha);
+        string label = tokens[0];
+        if(label[(int) label.size()-1] == ':'){ //definição de variável
+            label = label.substr(0, (int) label.size()-1); //tirar ':'
+
+            if(tabela_simbolos.find(label) == tabela_simbolos.end()){ //se o símbolo ainda não está na tabela
+                Simbolo s;
+                s.endereco = endereco;
+                s.pendencia = -1;
+                tabela_simbolos.insert({label, s});
+            }
+            else{
+                tabela_simbolos[label].endereco = endereco;
+            }
+            string valor_token = "";
+            if(tokens[1]=="SPACE"){ 
+                int qtd_zeros = 1;
+                if(tokens.size()>2){
+                    qtd_zeros = stoi(tokens[2]);
+                }
+                for(int i=0; i<qtd_zeros; i++){
+                    valor_token += "0";
+                }
+                saida.push_back(valor_token);
+            }
+            else if(tokens[1]=="CONST"){
+                valor_token = tokens[2];
+                saida.push_back(valor_token);
+            }
+            else{
+                cout << "erro nao é space nem const; endereço " << endereco << "\n";
+            }
+            endereco++;
+        }
+        else{ //instrução
+            string instrucao = tokens[0];
+                    if(opcode.find(instrucao) == opcode.end()){
+                        cout << "erro instrução inválida; endereço " << endereco << "\n";
+                        continue;
+                    }
+
+            string valor_token = to_string(opcode[instrucao]);
+            saida.push_back(valor_token);
+            endereco++;
+            
+            if(instrucao == "STOP"){
+                if(tokens.size()>1){
+                    cout << "erro STOP com argumento; endereço " << endereco-1 << "\n";
+                }
+            }
+            else if(instrucao =="COPY"){
+                if(tokens.size()!=3){
+                    cout << "erro número de argumentos inválido para COPY; endereço " << endereco-1 << "\n";
+                    continue;
+                }
+                string arg1 = tokens[1];
+                string arg2 = tokens[2];
+                string valor_arg1 = valorDaVariavelNoEndereco(arg1, endereco);
+                saida.push_back(valor_arg1);
+                endereco++;
+                string valor_arg2 = valorDaVariavelNoEndereco(arg2, endereco);
+                saida.push_back(valor_arg2);
+                endereco++;
+        }
+            else{
+                string arg = tokens[1];
+                string valor_arg = valorDaVariavelNoEndereco(arg, endereco);
+                saida.push_back(valor_arg);
+                endereco++;
             }
         }
     }
-    return codigoResolvido;
+    for(auto x : saida) cout << x << " ";
+    cout << "\n";
+    return saida;
 }
+
+
+// vector<int> o2(vector<int> codigoPendencias, vector<string> &pre)
+// {
+//     vector<int> codigoResolvido = codigoPendencias;
+//     int prox_pendencia;
+//     for (Simbolo s : tabela_simbolos)
+//     {
+//         prox_pendencia = s.pendencia;
+//         if (s.valor == -1)
+//         {
+//             while (prox_pendencia != -1)
+//             {
+//                 int temp = codigoResolvido[prox_pendencia];
+//                 codigoResolvido[prox_pendencia] = s.valor;
+//                 pre[prox_pendencia] += " erro semântico";
+//                 prox_pendencia = temp;
+//             }
+//         }
+//         else
+//         {
+//             while (prox_pendencia != -1)
+//             {
+//                 int temp = codigoResolvido[prox_pendencia];
+//                 codigoResolvido[prox_pendencia] = s.valor;
+//                 prox_pendencia = temp;
+//             }
+//         }
+//     }
+//     return codigoResolvido;
+// }
 
 int main(int argc, char *argv[])
 {
@@ -386,6 +487,7 @@ int main(int argc, char *argv[])
     }
     arquivo.close();
     vector<string> codigoExpandido = preProcessamento(codigo);
+    vector<string> codigoO1 = o1(codigoExpandido);
     /*string nome_arquivo_pre = nome_arquivo_entrada;
     size_t extensao = nome_arquivo_pre.find_last_of(".");
     if (extensao != std::string::npos) {
