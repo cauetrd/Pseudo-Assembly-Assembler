@@ -1,0 +1,73 @@
+; Teste completo de casos complexos e edge cases finais
+
+; Teste 1: Todas as instruções disponíveis
+START:
+    INPUT NUMBER
+    LOAD NUMBER
+    ADD INCREMENT
+    SUB DECREMENT
+    MULT MULTIPLIER
+    DIV DIVISOR
+    STORE RESULT
+    
+    ; Testes de saltos condicionais
+    LOAD RESULT
+    JMPZ ZERO_CASE
+    JMPP POSITIVE_CASE
+    JMPN NEGATIVE_CASE
+    JMP CONTINUE
+
+ZERO_CASE:
+    OUTPUT ZERO_MSG
+    JMP END
+
+POSITIVE_CASE:
+    OUTPUT POS_MSG
+    JMP END
+
+NEGATIVE_CASE:
+    OUTPUT NEG_MSG
+    JMP END
+
+CONTINUE:
+    ; Teste COPY com expressões
+    COPY RESULT + 1, BACKUP - 0
+    COPY ARRAY + 5, MATRIX + 10
+    
+    ; Loop de teste
+LOOP:
+    LOAD COUNTER
+    SUB ONE
+    STORE COUNTER
+    JMPZ END
+    OUTPUT COUNTER
+    JMP LOOP
+
+END:
+    STOP
+
+; Teste 2: Definições de dados com casos extremos
+NUMBER: SPACE
+INCREMENT: CONST 1
+DECREMENT: CONST 1
+MULTIPLIER: CONST 2
+DIVISOR: CONST 2
+RESULT: SPACE
+COUNTER: CONST 5
+ONE: CONST 1
+ZERO_MSG: CONST 0
+POS_MSG: CONST 1
+NEG_MSG: CONST -1
+
+; Arrays com diferentes tamanhos
+ARRAY: SPACE 1
+MATRIX: SPACE 50
+BIG_ARRAY: SPACE 999
+
+; Constantes com valores extremos
+MAX_VALUE: CONST 32767
+MIN_VALUE: CONST -32768
+ZERO: CONST 0
+
+; Backup storage
+BACKUP: SPACE 10
