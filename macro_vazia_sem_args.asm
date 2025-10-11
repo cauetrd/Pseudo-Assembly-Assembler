@@ -1,0 +1,12 @@
+Empty: MACRO
+ENDMACRO
+
+    NoArgs: MACRO
+    LOAD X
+ENDMACRO
+
+Empty
+NoArgs
+STOP
+
+X: CONST 10

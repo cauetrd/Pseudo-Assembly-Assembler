@@ -1,0 +1,20 @@
+Init: MACRO VAR
+    LOAD ZERO
+    STORE VAR
+ENDMACRO
+
+Double: MACRO VAR
+    LOAD VAR
+    ADD VAR
+    STORE VAR
+ENDMACRO
+
+; Main program
+Init A
+Double A
+
+Double a
+STOP
+
+ZERO: CONST 0
+A: SPACE

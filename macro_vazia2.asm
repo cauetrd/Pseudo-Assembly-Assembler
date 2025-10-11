@@ -1,0 +1,7 @@
+Empty: MACRO 
+ENDMACRO
+
+Empty
+STOP
+
+ENDMACRO

@@ -1,0 +1,10 @@
+HasLabel: MACRO X
+LBL: LOAD X
+    STORE X
+ENDMACRO
+
+HasLabel A
+HasLabel B
+STOP
+A: SPACE
+B: SPACE
