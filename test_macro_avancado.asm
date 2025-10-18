@@ -1,0 +1,35 @@
+; Teste avançado de macros aninhadas com múltiplos argumentos
+; Macro para copiar um valor
+COPY_VALUE: MACRO SRC DST
+    LOAD SRC
+    STORE DST
+ENDMACRO
+
+; Macro para trocar dois valores usando COPY_VALUE
+ADVANCED_SWAP: MACRO A B
+    COPY_VALUE A TEMP1
+    COPY_VALUE B A
+    COPY_VALUE TEMP1 B
+ENDMACRO
+
+; Macro que faz múltiplas operações
+MULTI_OP: MACRO W X Y Z
+    ADVANCED_SWAP W X
+    COPY_VALUE Y TEMP2
+    ADVANCED_SWAP Z TEMP2
+    COPY_VALUE TEMP2 Y
+ENDMACRO
+
+; Programa principal
+INPUT VAR1
+MULTI_OP VAR1 VAR2 VAR3 VAR4
+OUTPUT VAR1
+OUTPUT VAR2
+STOP
+
+VAR1: SPACE
+VAR2: CONST 100
+VAR3: CONST 200
+VAR4: CONST 300
+TEMP1: SPACE
+TEMP2: SPACE
