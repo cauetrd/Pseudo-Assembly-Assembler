@@ -1,0 +1,3 @@
+Test: MACRO
+LOAD A
+ENDMACRO

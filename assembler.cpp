@@ -376,7 +376,9 @@ vector<string> preProcessamento(vector<string> codigo)
         codigoExpandido.push_back(label);
     }
     codigoExpandido = expandeTodasMacros(codigoExpandido);
-        vector<string> codigoFinal;
+    
+    // Second pass of label joining after macro expansion
+    vector<string> codigoFinal;
     string label_final;
     for (string linha : codigoExpandido) {
         vector<string> tokens = getTokens(linha);

@@ -1,0 +1,5 @@
+Test: MACRO
+ENDMACRO
+
+Test
+STOP

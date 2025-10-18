@@ -1,6 +1,5 @@
 Empty: MACRO 
-macro_vazia:
+label:
 ENDMACRO
-
-Empty
+empty
 STOP
