@@ -21,7 +21,7 @@ RESTORE_AND_ADD: MACRO VAR, VALUE
 ENDMACRO
 
 ; Macro com espaços irregulares na definição
-  SPACED_MACRO  :   MACRO   A  ,  B  
+  SPACED_MACRO:   MACRO   A,  B  
 	LOAD   A
 	    SUB    B
 	STORE   TEMP

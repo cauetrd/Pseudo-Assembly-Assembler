@@ -1,0 +1,7 @@
+LabelLo: LOAD X
+labello: ADD Y
+LABELLO: STORE Z
+STOP
+X: CONST 1
+Y: CONST 2
+Z: SPACE

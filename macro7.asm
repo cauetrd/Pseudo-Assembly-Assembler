@@ -1,0 +1,11 @@
+NAME: MACRO A, AA
+    LOAD A
+    ADD AA
+    STORE A
+ENDMACRO
+
+nAmE X, Y
+STOP
+X: SPACE 
+Y: SPACE 
+

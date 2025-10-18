@@ -1,0 +1,14 @@
+Sum: MACRO A, B, C
+    LOAD A
+    ADD B
+    ADD C
+    STORE RESULT
+ENDMACRO
+
+Sum X, Y, Z
+STOP
+
+X: CONST 1
+Y: CONST 2
+Z: CONST 3
+RESULT: SPACE

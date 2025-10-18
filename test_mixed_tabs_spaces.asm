@@ -1,0 +1,7 @@
+	LOAD   	X
+	ADD	Y
+	STORE   	Z
+	STOP
+X:	CONST	1
+Y:	CONST	2
+Z:	SPACE

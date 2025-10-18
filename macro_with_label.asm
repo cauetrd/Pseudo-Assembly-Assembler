@@ -1,0 +1,4 @@
+Test: MACRO
+label:
+ENDMACRO
+STOP

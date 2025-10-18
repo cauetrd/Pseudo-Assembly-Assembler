@@ -14,6 +14,6 @@ stop
 
 a: CONST 10
 B: const 20
-temp: Space
+temp: Space 5
 
 

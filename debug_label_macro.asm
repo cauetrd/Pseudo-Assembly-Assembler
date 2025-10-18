@@ -1,0 +1,7 @@
+Simple: MACRO
+LOAD A
+ENDMACRO
+
+test: Simple
+STOP
+A: SPACE

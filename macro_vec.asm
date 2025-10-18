@@ -1,0 +1,9 @@
+X: MACRO &A 
+    LOAD b
+    STORE &A + 1
+    ENDMACRO 
+
+X A 
+STOP
+A: SPACE 2 
+B: SPACE
