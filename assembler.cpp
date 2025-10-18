@@ -8,69 +8,75 @@ vector<string> instrucoes = {
     "ADD", "SUB", "MULT", "DIV", "JMP", "JMPN", "JMPP", "JMPZ",
     "COPY", "LOAD", "STORE", "INPUT", "OUTPUT", "STOP"};
 
-map<string, int> mnt; //mapeia o nome da macro para a linha da mdt que o corpo dela começa
-vector<string> mdt; 
+map<string, int> mnt; // mapeia o nome da macro para a linha da mdt que o corpo dela começa
+vector<string> mdt;
 
 struct Simbolo
 {
-    string nome;
-    int valor;
+    int endereco;
     int pendencia;
 };
 
-vector<Simbolo> tabela_simbolos;
+map<string, Simbolo> tabela_simbolos;
 
-
-string normalizaExpressao(string &linha) {
+string normalizaExpressao(string &linha)
+{
     string resultado = "";
-    
-    for (int i = 0; i < linha.size(); i++) {
-        char atual = linha[i];
-        
 
-        if (atual == '+' || atual == '-') {
-            while (!resultado.empty() && resultado.back() == ' ') {
+    for (int i = 0; i < linha.size(); i++)
+    {
+        char atual = linha[i];
+
+        if (atual == '+' || atual == '-')
+        {
+            while (!resultado.empty() && resultado.back() == ' ')
+            {
                 resultado.pop_back();
             }
-            
- 
+
             resultado += " ";
             resultado += atual;
             resultado += " ";
-            
 
-            while (i + 1 < linha.size() && linha[i + 1] == ' ') {
+            while (i + 1 < linha.size() && linha[i + 1] == ' ')
+            {
                 i++;
             }
-        } else if (atual == ',') {
+        }
+        else if (atual == ',')
+        {
 
-            while (!resultado.empty() && resultado.back() == ' ') {
+            while (!resultado.empty() && resultado.back() == ' ')
+            {
                 resultado.pop_back();
             }
-            
 
             resultado += ", ";
-            
 
-            while (i + 1 < linha.size() && linha[i + 1] == ' ') {
+            while (i + 1 < linha.size() && linha[i + 1] == ' ')
+            {
                 i++;
             }
-        } else {
+        }
+        else
+        {
             resultado += atual;
         }
     }
-    
+
     return resultado;
 }
 
-
 bool verificaErroLabel(string label)
 {
-    if (isdigit (label[0])){
+    if (isdigit(label[0]))
+    {
         return true;
     }
-    for (char carac : label){
-        if (!isdigit(carac) && !isalpha(carac) && !(carac=='_')){
+    for (char carac : label)
+    {
+        if (!isdigit(carac) && !isalpha(carac) && !(carac == '_'))
+        {
             return true;
         }
     }
@@ -97,9 +103,11 @@ int achaChar(string &str, char carac)
     return -1;
 }
 
-string tiraVirgula (string arg){
+string tiraVirgula(string arg)
+{
     int temVirgula = achaChar(arg, ',');
-    if (temVirgula == arg.size()-1){
+    if (temVirgula == arg.size() - 1)
+    {
         arg = arg.substr(0, arg.size() - 1);
     }
     return arg;
@@ -114,7 +122,7 @@ vector<string> getTokens(string &linha)
         string current_str = linha.substr(token_inicio);
 
         int pos_space = achaChar(current_str, ' ');
-        int pos_tab   = achaChar(current_str, '\t');
+        int pos_tab = achaChar(current_str, '\t');
         int pos_sep;
         if (pos_space == -1 && pos_tab == -1)
         {
@@ -134,7 +142,8 @@ vector<string> getTokens(string &linha)
         {
             pos_sep = min(pos_space, pos_tab);
         }
-        if (pos_sep > 0){
+        if (pos_sep > 0)
+        {
             tokens.push_back(current_str.substr(0, pos_sep));
         }
         token_inicio += pos_sep + 1;
@@ -267,7 +276,6 @@ vector<string> expandeTodasMacros(vector<string> cod)
                     else
                     {
                         expanded_code.push_back(linha);
-                        continue;
                     }
                 }
                 else
@@ -287,13 +295,31 @@ vector<string> expandeTodasMacros(vector<string> cod)
                         for (int j = 1 + label_def; j < tokensMacro.size(); j++)
                         {
                             string current_arg = tokensMacro[j];
-                            current_arg = tiraVirgula (current_arg);
+                            current_arg = tiraVirgula(current_arg);
                             local_args.push_back(current_arg);
                         }
                         vector<string> linha_expandida = expandeMacro(tokenBusca, local_args);
-                        for (string linha : linha_expandida)
+                        if (label_def == 1)
                         {
-                            expanded_code.push_back(linha);
+                            if (!linha_expandida.empty())
+                            {
+                                expanded_code.push_back(tokensMacro[0] + " " + linha_expandida[0]);
+                                for (int i = 1; i < linha_expandida.size(); i++)
+                                {
+                                    expanded_code.push_back(linha_expandida[i]);
+                                }
+                            }
+                            else
+                            {
+                                expanded_code.push_back(tokensMacro[0]);
+                            }
+                        }
+                        else
+                        {
+                            for (string linha : linha_expandida)
+                            {
+                                expanded_code.push_back(linha);
+                            }
                         }
                         argumentos.clear();
                     }
@@ -315,63 +341,210 @@ vector<string> preProcessamento(vector<string> codigo)
     {
         maisculas(linha);
         tiraComentario(linha);
-        
 
         linha = normalizaExpressao(linha);
-        
+
         vector<string> tokens = getTokens(linha);
         linha = juntaTokens(tokens);
-        if (linha.empty()) {
+        if (linha.empty())
+        {
             continue;
         }
         string primeiroToken = tokens[0];
-        if (tokens.size() == 1 && primeiroToken.size() > 0 && primeiroToken[primeiroToken.size()-1] == ':')
+        if (tokens.size() == 1 && primeiroToken.size() > 0 && primeiroToken[primeiroToken.size() - 1] == ':')
         {
             label += tokens[0] + " ";
             continue;
         }
         if (!label.empty())
         {
-            linha = label + linha;
-            label = "";
+            if (primeiroToken != "ENDMACRO")
+            {
+                linha = label + linha;
+                label = "";
+            }
+            else
+            {
+                codigoExpandido.push_back(label.substr(0, label.size()-1));
+                label = "";
+            }
         }
         codigoExpandido.push_back(linha);
     }
-    if (!label.empty()){
+    if (!label.empty())
+    {
         codigoExpandido.push_back(label);
     }
     codigoExpandido = expandeTodasMacros(codigoExpandido);
-    return codigoExpandido;
+        vector<string> codigoFinal;
+    string label_final;
+    for (string linha : codigoExpandido) {
+        vector<string> tokens = getTokens(linha);
+        if (tokens.empty()) {
+            continue;
+        }
+        string primeiroToken = tokens[0];
+        if (tokens.size() == 1 && primeiroToken.size() > 0 && primeiroToken[primeiroToken.size()-1] == ':')
+        {
+            label_final += tokens[0] + " ";
+            continue;
+        }
+        if (!label_final.empty())
+        {
+            linha = label_final + linha;
+            label_final = "";
+        }
+        codigoFinal.push_back(linha);
+    }
+    if (!label_final.empty()){
+        codigoFinal.push_back(label_final.substr(0, label_final.size()-1));
+    }
+    
+    return codigoFinal;
 }
 
-vector<int> o2(vector<int> codigoPendencias, vector<string> &pre)
+string valorDaVariavelNoEndereco(string &var, int endereco)
 {
-    vector<int> codigoResolvido = codigoPendencias;
-    int prox_pendencia;
-    for (Simbolo s : tabela_simbolos)
+    string saida;
+    if (tabela_simbolos.find(var) == tabela_simbolos.end())
+    { // se o símbolo ainda não está na tabela
+        Simbolo s;
+        s.endereco = -1;
+        s.pendencia = endereco;
+        tabela_simbolos.insert({var, s});
+        saida = "-1"; // pendência
+    }
+    else
     {
-        prox_pendencia = s.pendencia;
-        if (s.valor == -1)
-        {
-            while (prox_pendencia != -1)
-            {
-                int temp = codigoResolvido[prox_pendencia];
-                codigoResolvido[prox_pendencia] = s.valor;
-                pre[prox_pendencia] += " erro semântico";
-                prox_pendencia = temp;
-            }
+        if (tabela_simbolos[var].endereco != -1)
+        { // se o símbolo já foi definido
+            saida = to_string(tabela_simbolos[var].endereco);
         }
         else
         {
-            while (prox_pendencia != -1)
+            saida = to_string(tabela_simbolos[var].pendencia);
+            tabela_simbolos[var].pendencia = endereco;
+        }
+    }
+    return saida;
+}
+
+vector<string> o1(vector<string> &pre)
+{
+    vector<string> saida;
+    int endereco = 0;
+    
+    for (int linha_pre = 0; linha_pre < pre.size(); ++linha_pre)
+    {
+        string &linha = pre[linha_pre];
+        vector<string> tokens = getTokens(linha);
+        if (tokens.empty()) continue;
+        string label = tokens[0];
+
+        if (label[(int)label.size() - 1] == ':')
+        {                                                   // definição de variável
+            label = label.substr(0, (int)label.size() - 1); // tirar ':'
+
+            if (tabela_simbolos.find(label) == tabela_simbolos.end())
+            { // se o símbolo ainda não está na tabela
+                Simbolo s;
+                s.endereco = endereco;
+                s.pendencia = -1;
+                tabela_simbolos.insert({label, s});
+            }
+            else
             {
-                int temp = codigoResolvido[prox_pendencia];
-                codigoResolvido[prox_pendencia] = s.valor;
-                prox_pendencia = temp;
+                Simbolo atual = tabela_simbolos [label];
+                if (atual.endereco!=-1) {
+                    cout << "simbolo redefinido: " <<label <<"\n";
+                    pre [linha_pre] += "   erro semântico";
+                }
+                tabela_simbolos[label].endereco = endereco;
+            }
+            tokens.erase(tokens.begin());
+        }
+
+        string valor_token = "";
+        if (tokens.empty()) continue;
+        string instrucao = tokens[0];
+        if (instrucao == "SPACE")
+        {
+            int qtd_zeros = 1;
+            if (tokens.size() > 1)
+            {
+                qtd_zeros = stoi(tokens[1]);
+            }
+            for (int i = 0; i < qtd_zeros; i++)
+            {
+                valor_token += "0";
+            }
+            saida.push_back(valor_token);
+            endereco++;
+        }
+        else if (instrucao == "CONST")
+        {
+            valor_token = tokens[1];
+            saida.push_back(valor_token);
+            endereco++;
+        }
+        else
+        { // instrução}
+            if (opcode.find(instrucao) == opcode.end())
+            {
+                cout << "erro instrução inválida; endereço " << endereco << "\n";
+                continue;
+            }
+
+            valor_token = to_string(opcode[instrucao]);
+            saida.push_back(valor_token);
+            endereco++;
+
+            if (instrucao == "STOP")
+            {
+                if (tokens.size() > 1)
+                {
+                    cout << "erro STOP com argumento; endereço " << endereco - 1 << "\n";
+                }
+            }
+            else if (instrucao == "COPY")
+            {
+                if (tokens.size() != 3)
+                {
+                    cout << "erro número de argumentos inválido para COPY; endereço " << endereco - 1 << "\n";
+                    continue;
+                }
+                string arg1 = tokens[1];
+                string arg2 = tokens[2];
+                string valor_arg1 = valorDaVariavelNoEndereco(arg1, endereco);
+                saida.push_back(valor_arg1);
+                endereco++;
+                string valor_arg2 = valorDaVariavelNoEndereco(arg2, endereco);
+                saida.push_back(valor_arg2);
+                endereco++;
+            }
+            else
+            {
+                string arg = tokens[1];
+                string valor_arg = valorDaVariavelNoEndereco(arg, endereco);
+                saida.push_back(valor_arg);
+                endereco++;
             }
         }
     }
-    return codigoResolvido;
+    return saida;
+}
+
+vector<string> o2(vector<string> codigoPendencias, vector<string> &pre){
+    vector<string> saida = codigoPendencias;
+    for(auto [nome, simbolo] : tabela_simbolos){
+        int pendencia = simbolo.pendencia;
+        int endereco = simbolo.endereco;
+        while(pendencia != -1){
+            saida[pendencia] = to_string(endereco);
+            pendencia = stoi(codigoPendencias[pendencia]);
+        }
+    }
+    return saida;
 }
 
 int main(int argc, char *argv[])
@@ -386,22 +559,31 @@ int main(int argc, char *argv[])
     }
     arquivo.close();
     vector<string> codigoExpandido = preProcessamento(codigo);
+    vector<string> codigoO1 = o1(codigoExpandido);
+        vector<string> codigoO2 = o2(codigoO1, codigoExpandido);
+        for (string linha : codigoExpandido)
+    {
+        cout << linha << "\n";
+    }
+    
+    for (auto x : codigoO1)
+        cout << x << " ";
+    cout << "\n";
+    for (auto x : codigoO2)
+        cout << x << " ";
+    cout << "\n";
     /*string nome_arquivo_pre = nome_arquivo_entrada;
     size_t extensao = nome_arquivo_pre.find_last_of(".");
     if (extensao != std::string::npos) {
-        nome_arquivo_pre = nome_arquivo_pre.substr(0, extensao); 
+        nome_arquivo_pre = nome_arquivo_pre.substr(0, extensao);
     }*/
     /*nome_arquivo_pre += ".pre";
-    ofstream saida_pre(nome_arquivo_pre);*/  
+    ofstream saida_pre(nome_arquivo_pre);*/
 
     /*for (string linha : codigoExpandido){
         saida_pre << linha;
         saida_pre <<"\n";
     }
     saida_pre.close();*/
-    for (string linha : codigoExpandido)
-    {
-        cout << linha << "\n";
-    }
     return 0;
 }
