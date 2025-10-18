@@ -168,35 +168,93 @@ void tiraComentario(string &linha)
 vector<string> expandeMacro(string &nome, vector<string> argumentos)
 {
     vector<string> macroExpandida;
-    if (mnt.find(nome) == mnt.end())
-    {
+    if (mnt.find(nome) == mnt.end()){
         return macroExpandida;
     }
     int pos_mdt = mnt[nome];
-    string expand_linha = mdt[pos_mdt];
-    while (expand_linha != "ENDMACRO")
-    {
-        string linha_expandida = expand_linha;
-        for (int arg = 0; arg < argumentos.size(); arg++)
-        {
+    string linha_expandida = mdt[pos_mdt];
+
+    while (linha_expandida != "ENDMACRO"){
+        string llinha = linha_expandida;
+        
+        for (int arg = 0; arg < argumentos.size(); arg++){
             string local_arg = "#" + to_string(arg + 1);
-            vector<string> tokens = getTokens(linha_expandida);
-            for (int j = 0; j < tokens.size(); j++)
-            {
-                if (tokens[j] == local_arg)
-                {
+
+            vector<string> tokens = getTokens(llinha);
+            for (int j = 0; j < tokens.size(); j++){
+                if (tokens[j] == local_arg){
                     tokens[j] = argumentos[arg];
                 }
             }
-            linha_expandida = juntaTokens(tokens);
+            llinha = juntaTokens(tokens);
         }
-        macroExpandida.push_back(linha_expandida);
+        
+        vector<string> tokens_expandida = getTokens(llinha);
+
+
+        if (!tokens_expandida.empty()){
+            string primeiro_token = tokens_expandida[0];
+            int offset = 0;
+            
+            if (primeiro_token.size() > 0 && primeiro_token[primeiro_token.size() - 1] == ':'){
+                if (tokens_expandida.size() > 1){
+                    primeiro_token = tokens_expandida[1];
+                    offset = 1;
+                }
+                else{
+
+                    macroExpandida.push_back(llinha);
+                    pos_mdt++;
+                    if (pos_mdt >= mdt.size()) break;
+                    linha_expandida = mdt[pos_mdt];
+                    continue;
+                }
+            }
+            
+           
+            auto busca_instrucao = find(instrucoes.begin(), instrucoes.end(), primeiro_token);
+            if (busca_instrucao == instrucoes.end() && mnt.find(primeiro_token) != mnt.end()){
+                
+                vector<string> args_macro;
+                for (int i = 1 + offset; i < tokens_expandida.size(); i++){
+                    string arg = tokens_expandida[i];
+                    arg = tiraVirgula(arg);
+                    args_macro.push_back(arg);
+                }
+                
+                vector<string> macro_recursiva = expandeMacro(primeiro_token, args_macro);
+                
+                if (offset > 0){
+                    if (!macro_recursiva.empty()){
+                        macro_recursiva[0] = tokens_expandida[0] + " " + macro_recursiva[0];
+                    }
+
+                    else{
+            
+                        macroExpandida.push_back(tokens_expandida[0]);
+                    }
+
+                }
+                
+
+                for (string linha_rec : macro_recursiva){
+                    macroExpandida.push_back(linha_rec);
+                }
+            }
+
+            else{
+                macroExpandida.push_back(llinha);
+            }
+        }
+        else{
+            macroExpandida.push_back(llinha);
+        }
+        
         pos_mdt++;
-        if (pos_mdt >= mdt.size())
-        {
+        if (pos_mdt >= mdt.size()){
             break;
         }
-        expand_linha = mdt[pos_mdt];
+        linha_expandida = mdt[pos_mdt];
     }
     return macroExpandida;
 }
