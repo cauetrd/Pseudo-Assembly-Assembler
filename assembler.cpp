@@ -175,21 +175,21 @@ vector<string> expandeMacro(string &nome, vector<string> argumentos)
     string linha_expandida = mdt[pos_mdt];
 
     while (linha_expandida != "ENDMACRO"){
-        string llinha = linha_expandida;
+        string linha = linha_expandida;
         
         for (int arg = 0; arg < argumentos.size(); arg++){
             string local_arg = "#" + to_string(arg + 1);
 
-            vector<string> tokens = getTokens(llinha);
+            vector<string> tokens = getTokens(linha);
             for (int j = 0; j < tokens.size(); j++){
                 if (tokens[j] == local_arg){
                     tokens[j] = argumentos[arg];
                 }
             }
-            llinha = juntaTokens(tokens);
+            linha = juntaTokens(tokens);
         }
         
-        vector<string> tokens_expandida = getTokens(llinha);
+        vector<string> tokens_expandida = getTokens(linha);
 
 
         if (!tokens_expandida.empty()){
@@ -203,7 +203,7 @@ vector<string> expandeMacro(string &nome, vector<string> argumentos)
                 }
                 else{
 
-                    macroExpandida.push_back(llinha);
+                    macroExpandida.push_back(linha);
                     pos_mdt++;
                     if (pos_mdt >= mdt.size()) break;
                     linha_expandida = mdt[pos_mdt];
@@ -243,11 +243,11 @@ vector<string> expandeMacro(string &nome, vector<string> argumentos)
             }
 
             else{
-                macroExpandida.push_back(llinha);
+                macroExpandida.push_back(linha);
             }
         }
         else{
-            macroExpandida.push_back(llinha);
+            macroExpandida.push_back(linha);
         }
         
         pos_mdt++;
