@@ -434,9 +434,7 @@ vector<string> preProcessamento(vector<string> codigo)
         codigoExpandido.push_back(label);
     }
     codigoExpandido = expandeTodasMacros(codigoExpandido);
-    
-    // Second pass of label joining after macro expansion
-    vector<string> codigoFinal;
+        vector<string> codigoFinal;
     string label_final;
     for (string linha : codigoExpandido) {
         vector<string> tokens = getTokens(linha);
@@ -498,12 +496,17 @@ vector<string> o1(vector<string> &pre)
     {
         string &linha = pre[linha_pre];
         vector<string> tokens = getTokens(linha);
-        if (tokens.empty()) continue;
-        string label = tokens[0];
+        if (tokens.empty()) 
+            continue;
 
+        string label = tokens[0];
         if (label[(int)label.size() - 1] == ':')
         {                                                   // definição de variável
             label = label.substr(0, (int)label.size() - 1); // tirar ':'
+            bool temErro = verificaErroLabel (label);
+            if (temErro) {
+                pre[linha_pre] += " erro léxico";
+            }
 
             if (tabela_simbolos.find(label) == tabela_simbolos.end())
             { // se o símbolo ainda não está na tabela
@@ -551,7 +554,7 @@ vector<string> o1(vector<string> &pre)
         { // instrução}
             if (opcode.find(instrucao) == opcode.end())
             {
-                cout << "erro instrução inválida; endereço " << endereco << "\n";
+                pre [linha_pre] += " erro sintatico"; //instrucao invalida
                 continue;
             }
 
@@ -574,6 +577,7 @@ vector<string> o1(vector<string> &pre)
                     continue;
                 }
                 string arg1 = tokens[1];
+                arg1 = tiraVirgula (arg1);
                 string arg2 = tokens[2];
                 string valor_arg1 = valorDaVariavelNoEndereco(arg1, endereco);
                 saida.push_back(valor_arg1);
@@ -599,6 +603,9 @@ vector<string> o2(vector<string> codigoPendencias, vector<string> &pre){
     for(auto [nome, simbolo] : tabela_simbolos){
         int pendencia = simbolo.pendencia;
         int endereco = simbolo.endereco;
+        if (endereco==-1){
+            cout << "simbolo nao definidio \n";
+        }
         while(pendencia != -1){
             saida[pendencia] = to_string(endereco);
             pendencia = stoi(codigoPendencias[pendencia]);
@@ -621,7 +628,7 @@ int main(int argc, char *argv[])
     vector<string> codigoExpandido = preProcessamento(codigo);
     vector<string> codigoO1 = o1(codigoExpandido);
         vector<string> codigoO2 = o2(codigoO1, codigoExpandido);
-        for (string linha : codigoExpandido)
+        /*for (string linha : codigoExpandido)
     {
         cout << linha << "\n";
     }
@@ -631,19 +638,42 @@ int main(int argc, char *argv[])
     cout << "\n";
     for (auto x : codigoO2)
         cout << x << " ";
-    cout << "\n";
-    /*string nome_arquivo_pre = nome_arquivo_entrada;
+    cout << "\n";*/
+    string nome_arquivo_pre = nome_arquivo_entrada;
     size_t extensao = nome_arquivo_pre.find_last_of(".");
     if (extensao != std::string::npos) {
         nome_arquivo_pre = nome_arquivo_pre.substr(0, extensao);
-    }*/
-    /*nome_arquivo_pre += ".pre";
-    ofstream saida_pre(nome_arquivo_pre);*/
-
-    /*for (string linha : codigoExpandido){
-        saida_pre << linha;
-        saida_pre <<"\n";
     }
-    saida_pre.close();*/
+    
+    string nome_arquivo_pre_final = nome_arquivo_pre + ".pre";
+    ofstream saida_pre(nome_arquivo_pre_final);
+    for (int i=0; i< codigoExpandido.size(); i++){
+        string linha = codigoExpandido[i];
+        saida_pre << linha;
+        if (i!=(codigoExpandido.size()-1)){
+        saida_pre <<"\n";
+        }
+    }
+    saida_pre.close();
+    
+    string nome_arquivo_o1 = nome_arquivo_pre + ".o1";
+    ofstream saida_o1(nome_arquivo_o1);
+    for (int i = 0; i < codigoO1.size(); i++) {
+        saida_o1 << codigoO1[i];
+        if (i < codigoO1.size() - 1) {
+            saida_o1 << " ";
+        }
+    }
+    saida_o1.close();
+    
+    string nome_arquivo_o2 = nome_arquivo_pre + ".o2";
+    ofstream saida_o2(nome_arquivo_o2);
+    for (int i = 0; i < codigoO2.size(); i++) {
+        saida_o2 << codigoO2[i];
+        if (i < codigoO2.size() - 1) {
+            saida_o2 << " ";
+        }
+    }
+    saida_o2.close();
     return 0;
 }

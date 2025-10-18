@@ -5,8 +5,7 @@ MACRO_SIMPLES: MACRO &a
     output &a 
             endmacro
 
-chama:
-        macro_simples b 
+chama: macro_simples b 
     stop 
 b: space 
     one: const 1
