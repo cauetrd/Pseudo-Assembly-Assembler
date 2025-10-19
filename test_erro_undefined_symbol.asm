@@ -1,0 +1,5 @@
+INPUT A
+LOAD A
+STORE B
+STOP
+b: space

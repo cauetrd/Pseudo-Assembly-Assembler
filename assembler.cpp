@@ -9,8 +9,8 @@ vector<string> instrucoes = {
     "COPY", "LOAD", "STORE", "INPUT", "OUTPUT", "STOP"};
 
 map<string, int> mnt; // mapeia o nome da macro para a linha da mdt que o corpo dela começa
-vector<string> mdt;
-
+vector<string> mdt; //guarda o corpo das macros 
+map<int, int> endereco_para_linha_pre; // mapeia endereco da pendencia para linha do arquivo .pre
 struct Simbolo
 {
     int endereco;
@@ -191,8 +191,9 @@ vector<string> expandeMacro(string &nome, vector<string> argumentos)
 
             vector<string> tokens = getTokens(linha);
             for (int j = 0; j < tokens.size(); j++){
-                if (tokens[j] == local_arg){
-                    tokens[j] = argumentos[arg];
+                string limpa_token = tiraVirgula(tokens[j]);
+                if (limpa_token == local_arg){
+                    tokens[j] = argumentos[arg] + (tokens[j] != limpa_token ? "," : "");
                 }
             }
             linha = juntaTokens(tokens);
@@ -279,17 +280,22 @@ vector<string> expandeTodasMacros(vector<string> cod)
         vector<string> tokensMacro = getTokens(linha);
         if (macro)
         {
+            vector<string> tokens = getTokens(linha);
+            if (tokens.empty()){
+                continue;
+            }
             for (int i = 0; i < argumentos.size(); i++)
             {
                 string arg = argumentos[i];
                 arg = tiraVirgula(arg);
                 string arg_positional = "#" + to_string(i + 1);
-                vector<string> tokens = getTokens(linha);
+                tokens = getTokens(linha); 
                 for (int j = 0; j < tokens.size(); j++)
                 {
-                    if (tokens[j] == arg)
+                    string token_clean = tiraVirgula(tokens[j]);
+                    if (token_clean == arg)
                     {
-                        tokens[j] = arg_positional;
+                        tokens[j] = arg_positional + (tokens[j] != token_clean ? "," : "");
                     }
                 }
                 linha = juntaTokens(tokens);
@@ -519,8 +525,7 @@ vector<string> o1(vector<string> &pre)
             {
                 Simbolo atual = tabela_simbolos [label];
                 if (atual.endereco!=-1) {
-                    cout << "simbolo redefinido: " <<label <<"\n";
-                    pre [linha_pre] += "   erro semântico";
+                    pre [linha_pre] += "   erro semântico"; //simbolo redefinido
                 }
                 tabela_simbolos[label].endereco = endereco;
             }
@@ -567,6 +572,7 @@ vector<string> o1(vector<string> &pre)
                 if (tokens.size() > 1)
                 {
                     cout << "erro STOP com argumento; endereço " << endereco - 1 << "\n";
+                    pre [linha_pre] += " erro sintatico"; // stop com argumento
                 }
             }
             else if (instrucao == "COPY")
@@ -580,16 +586,23 @@ vector<string> o1(vector<string> &pre)
                 arg1 = tiraVirgula (arg1);
                 string arg2 = tokens[2];
                 string valor_arg1 = valorDaVariavelNoEndereco(arg1, endereco);
+                endereco_para_linha_pre[endereco] = linha_pre;
                 saida.push_back(valor_arg1);
                 endereco++;
                 string valor_arg2 = valorDaVariavelNoEndereco(arg2, endereco);
+                endereco_para_linha_pre[endereco] = linha_pre; 
                 saida.push_back(valor_arg2);
                 endereco++;
             }
             else
             {
                 string arg = tokens[1];
+                bool temErro = verificaErroLabel (arg);
+                if (temErro){
+                    pre [linha_pre] += " erro léxico";
+                }
                 string valor_arg = valorDaVariavelNoEndereco(arg, endereco);
+                endereco_para_linha_pre[endereco] = linha_pre;
                 saida.push_back(valor_arg);
                 endereco++;
             }
@@ -604,11 +617,20 @@ vector<string> o2(vector<string> codigoPendencias, vector<string> &pre){
         int pendencia = simbolo.pendencia;
         int endereco = simbolo.endereco;
         if (endereco==-1){
-            cout << "simbolo nao definidio \n";
+            while (pendencia != -1) {
+                auto iterator = endereco_para_linha_pre.find(pendencia);
+                if (iterator != endereco_para_linha_pre.end()) {
+                    int linha_pre = iterator->second;
+                    pre[linha_pre] += " erro semantico";
+                }
+                pendencia = stoi(codigoPendencias[pendencia]);
+            }
         }
+        else {
         while(pendencia != -1){
             saida[pendencia] = to_string(endereco);
             pendencia = stoi(codigoPendencias[pendencia]);
+        }
         }
     }
     return saida;
@@ -627,7 +649,7 @@ int main(int argc, char *argv[])
     arquivo.close();
     vector<string> codigoExpandido = preProcessamento(codigo);
     vector<string> codigoO1 = o1(codigoExpandido);
-        vector<string> codigoO2 = o2(codigoO1, codigoExpandido);
+    vector<string> codigoO2 = o2(codigoO1, codigoExpandido);
         /*for (string linha : codigoExpandido)
     {
         cout << linha << "\n";

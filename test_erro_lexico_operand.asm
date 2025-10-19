@@ -1,0 +1,3 @@
+MAIN: ADD 1X
+STOP
+1x: space

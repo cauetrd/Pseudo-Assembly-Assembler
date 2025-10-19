@@ -1,0 +1,2 @@
+MAIN: FOO A
+STOP

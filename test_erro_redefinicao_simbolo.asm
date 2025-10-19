@@ -1,0 +1,3 @@
+X: SPACE
+X: CONST 5
+STOP
