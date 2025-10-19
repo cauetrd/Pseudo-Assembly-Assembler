@@ -27,7 +27,7 @@ string normalizaExpressao(string &linha)
     {
         char atual = linha[i];
 
-        if (atual == '+' || atual == '-')
+        if (atual == '+')
         {
             while (!resultado.empty() && resultado.back() == ' ')
             {
