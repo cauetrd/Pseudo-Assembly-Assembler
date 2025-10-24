@@ -1,11 +1,18 @@
-Sum: MACRO A, B, C
-    LOAD A
-    ADD B
-    ADD C
-    STORE RESULT
+Sum: MACRO &A, &B, &C
+    LOAD &A
+    ADD &B
+    ADD &C
+    copy &a, &b 
+    STORE &A
 ENDMACRO
 
-Sum X, Y, Z
+chama: 
+macro &a, &b, &c 
+output &a
+sum &a, &b, &c 
+endmacro
+    
+chama X, Y, Z
 STOP
 
 X: CONST 1

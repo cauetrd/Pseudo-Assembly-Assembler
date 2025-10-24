@@ -1,0 +1,5 @@
+
+	
+LBL_VTAB:
+LOAD	VAL
+VAL: CONST 2

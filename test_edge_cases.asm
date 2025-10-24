@@ -61,6 +61,12 @@ END:
     STOP
 
 N1: CONST 5
-N2: CONST 3
+
+
+
+N2: 
+
+
+CONST 6
 A: SPACE
 B: SPACE

@@ -1,8 +1,9 @@
-MACRO2: MACRO X, Y
-    LOAD Y
-    STORE X
+MACRO2: MACRO a, b
+    LOAD b
+    STORE a
 ENDMACRO
 
+input b
 MACRO2 A, B
 STOP
 

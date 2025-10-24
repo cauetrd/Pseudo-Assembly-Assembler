@@ -5,5 +5,6 @@ LOAD X
 ENDMACRO
 
 TestMacro A
+testmacro b
 STOP
 A: SPACE

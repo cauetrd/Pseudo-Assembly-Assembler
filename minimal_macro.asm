@@ -1,3 +1,0 @@
-Test: MACRO
-ENDMACRO
-stop

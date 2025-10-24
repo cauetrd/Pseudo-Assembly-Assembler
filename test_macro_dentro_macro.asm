@@ -5,13 +5,13 @@ MACRO1: MACRO &A, &B
     mult two 
     endmacro 
     
-macro2: MACRO &a, &B 
-    load &b 
+macro2: MACRO &a, &bfsaf
+    load &bfsaf 
     store &a 
     endmacro 
 lbl: 
     macro1 a b 
-    macro1 b a
+  lbl2:  macro1 b b
     stop 
 a: space
 b: space 

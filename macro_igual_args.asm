@@ -1,6 +1,8 @@
-FOO: MACRO FOO
-    LOAD FOO
+FOO: 
+MACRO     FOO
+    LOAD      FOO
     ADD FOO
+lbl:
     STORE FOO
 ENDMACRO
 

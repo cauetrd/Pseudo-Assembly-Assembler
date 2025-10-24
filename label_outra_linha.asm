@@ -16,6 +16,7 @@ LOOP:
 
 START: PRINT A
     PRINT B
+    output x
     STOP
 
 MYLABEL:
@@ -32,5 +33,7 @@ LBL:
 Z: CONST 99
 A: CONST 10
 B: CONST 20
-X: CONST 10
+X: 
+
+CONST 105
 LAST:

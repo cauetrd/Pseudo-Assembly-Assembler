@@ -1,9 +1,13 @@
 Empty: MACRO 
-macro_vazia:
+;macro_vazia:
 ENDMACRO
 
 not_empty: macro 
     stop 
     endmacro
-Empty
-not_empty
+    lbl:
+another:
+mais: 
+sla:
+
+lbl: NOT_EMPTY 

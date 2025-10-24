@@ -14,7 +14,11 @@ sum_array n, soma
 avg soma, result 
 output result 
 stop 
-n: space 3
+n: 
+
+
+
+space 3
 soma: space 
 result: space 
 tres: const 3
