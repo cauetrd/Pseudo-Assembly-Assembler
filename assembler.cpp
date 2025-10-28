@@ -10,6 +10,7 @@ vector<string> instrucoes = {
 
 map<string, int> mnt; //mapeia o nome da macro para a linha da mdt que o corpo dela começa
 vector<string> mdt; 
+int soma_nas_variaveis[10000];
 
 struct Simbolo
 {
@@ -343,119 +344,165 @@ vector<string> preProcessamento(vector<string> codigo)
     return codigoExpandido;
 }
 
-string valorDaVariavelNoEndereco(string& var, int endereco){
-        string saida;
+int valorDaVariavelNoEndereco(string& var, int endereco){
+        int saida;
         if( tabela_simbolos.find(var) == tabela_simbolos.end() ){ //se o símbolo ainda não está na tabela
             Simbolo s;
             s.endereco = -1;
             s.pendencia = endereco;
             tabela_simbolos.insert({var, s});
-            saida = "-1"; //pendência
+            saida = -1; //pendência
         }else{
             if(tabela_simbolos[var].endereco != -1){ //se o símbolo já foi definido
-                saida = to_string(tabela_simbolos[var].endereco);
+                saida = tabela_simbolos[var].endereco;
             }else{
-                saida = to_string(tabela_simbolos[var].pendencia);
+                saida = tabela_simbolos[var].pendencia;
                 tabela_simbolos[var].pendencia = endereco;
             }
         }
         return saida;
 }
 
-vector<string> o1(vector<string> &pre){
-    vector<string> saida;
-    int endereco = 0;
-
-    for(string linha : pre){
-        vector<string> tokens = getTokens(linha);
-        string label = tokens[0];
-       
-       
-        if(label[(int) label.size()-1] == ':'){ //definição de variável
-            label = label.substr(0, (int) label.size()-1); //tirar ':'
-
-            if(tabela_simbolos.find(label) == tabela_simbolos.end()){ //se o símbolo ainda não está na tabela
-                Simbolo s;
-                s.endereco = endereco;
-                s.pendencia = -1;
-                tabela_simbolos.insert({label, s});
-            }
-            else{
-                tabela_simbolos[label].endereco = endereco;
-            }
-            tokens.erase(tokens.begin());
-        }
-        
-        
-
-        string valor_token = "";
-        string instrucao = tokens[0];
-        if(instrucao=="SPACE"){ 
-            int qtd_zeros = 1;
-            if(tokens.size()>1){
-                qtd_zeros = stoi(tokens[1]);
-            }
-            for(int i=0; i<qtd_zeros; i++){
-                valor_token += "0";
-            }
-            saida.push_back(valor_token);
-            endereco++;
-        }
-        else if(instrucao=="CONST"){
-            valor_token = tokens[1];
-            saida.push_back(valor_token);
-            endereco++;
-        }
-        else{ //instrução}
-        if(opcode.find(instrucao) == opcode.end()){
-                        cout << "erro instrução inválida; endereço " << endereco << "\n";
-                        continue;
-                    }  
-
-            valor_token = to_string(opcode[instrucao]);
-            saida.push_back(valor_token);
-            endereco++;
-            
-            if(instrucao == "STOP"){
-                if(tokens.size()>1){
-                    cout << "erro STOP com argumento; endereço " << endereco-1 << "\n";
-                }
-            }
-            else if(instrucao =="COPY"){
-                if(tokens.size()!=3){
-                    cout << "erro número de argumentos inválido para COPY; endereço " << endereco-1 << "\n";
-                    continue;
-                }
-                string arg1 = tokens[1];
-                string arg2 = tokens[2];
-                string valor_arg1 = valorDaVariavelNoEndereco(arg1, endereco);
-                saida.push_back(valor_arg1);
-                endereco++;
-                string valor_arg2 = valorDaVariavelNoEndereco(arg2, endereco);
-                saida.push_back(valor_arg2);
-                endereco++;
-        }
-            else{
-                string arg = tokens[1];
-                string valor_arg = valorDaVariavelNoEndereco(arg, endereco);
-                saida.push_back(valor_arg);
-                endereco++;
-            }
+int adicionarSomaNoVetor (const vector<string>& tokens){
+    int valor = 0; //caso não tenha soma ou subtração
+    for(int i= 0; i< (int) tokens.size() -1; i++){
+        if(tokens[i] == "+" || tokens[i] == "-"){
+            string sinal = tokens[i];
+            string prox = tokens[i+1];
+            int valor_prox = stoi(prox);
+            if(sinal == "-")
+            valor -= valor_prox;
         }
     }
+    return valor;
+}
+
+static void processLabelIfAny(vector<string>& tokens, int &endereco)
+{
+    if (tokens.empty()) return;
+    string label = tokens[0];
+    if (label.empty()) return;
+    if (label[(int)label.size() - 1] == ':') {
+        label = label.substr(0, (int)label.size() - 1);
+        if (tabela_simbolos.find(label) == tabela_simbolos.end()) {
+            Simbolo s;
+            s.endereco = endereco;
+            s.pendencia = -1;
+            tabela_simbolos.insert({label, s});
+        } else {
+            tabela_simbolos[label].endereco = endereco;
+        }
+        tokens.erase(tokens.begin());
+    }
+}
+
+static void handleSPACE(const vector<string>& tokens, vector<int>& saida, int &endereco)
+{
+    int qtd_zeros = 1;
+    if (tokens.size() > 1) {
+        qtd_zeros = stoi(tokens[1]);
+    }
+    for(int i= 0; i<qtd_zeros; i++){
+        saida.push_back(0);
+        endereco++;
+    }
+}
+
+static void handleCONST(const vector<string>& tokens, vector<int>& saida, int &endereco)
+{
+    int valor_token = stoi(tokens[1]);
+    saida.push_back(valor_token);
+    endereco++;
+}
+
+static void handleCOPY(const vector<string>& tokens, vector<int>& saida, int &endereco)
+{
+    if (tokens.size() != 3) {
+        cout << "erro número de argumentos inválido para COPY; endereço " << endereco << "\n";
+        return;
+    }
+    string arg1 = tokens[1];
+    string arg2 = tokens[2];
+    int valor_arg1 = valorDaVariavelNoEndereco(arg1, endereco);
+    saida.push_back(valor_arg1);
+    endereco++;
+    int valor_arg2 = valorDaVariavelNoEndereco(arg2, endereco);
+    saida.push_back(valor_arg2);
+    endereco++;
+}
+
+static void handleSingleArgInstruction(const string& instrucao, const vector<string>& tokens, vector<int>& saida, int &endereco)
+{
+    if (tokens.size() < 2) {
+        cout << "erro: instrução " << instrucao << " sem argumento; endereço " << endereco - 1 << "\n";
+        return;
+    }
+    string arg = tokens[1];
+    int valor_arg = valorDaVariavelNoEndereco(arg, endereco);
+    saida.push_back(valor_arg);
+    soma_nas_variaveis[endereco] = adicionarSomaNoVetor(tokens);
+    endereco++;
+}
+
+static void handleInstruction(const string& instrucao, const vector<string>& tokens, vector<int>& saida, int &endereco)
+{
+    if (opcode.find(instrucao) == opcode.end()) {
+        cout << "erro instrução inválida; endereço " << endereco << "\n";
+        return;
+    }
+
+    int valor_token = opcode[instrucao];
+    saida.push_back(valor_token);
+    endereco++;
+
+    if (instrucao == "STOP") {
+        if (tokens.size() > 1) {
+            cout << "erro STOP com argumento; endereço " << endereco - 1 << "\n";
+        }
+    } else if (instrucao == "COPY") {
+        handleCOPY(tokens, saida, endereco);
+    } else {
+        handleSingleArgInstruction(instrucao, tokens, saida, endereco);
+    }
+}
+
+vector<int> o1(vector<string> &pre){
+    vector<int> saida;
+    int endereco = 0;
+
+    for (string linha : pre) {
+        vector<string> tokens = getTokens(linha);
+
+        // handle possible label at beginning (may erase tokens[0])
+        processLabelIfAny(tokens, endereco);
+
+        string instrucao = tokens[0];
+
+        if (instrucao == "SPACE") {
+            handleSPACE(tokens, saida, endereco);
+        } else if (instrucao == "CONST") {
+            handleCONST(tokens, saida, endereco);
+        } else {
+            handleInstruction(instrucao, tokens, saida, endereco);
+        }
+    }
+
     return saida;
 }
 
 
-vector<string> o2(vector<string> codigoPendencias, vector<string> &pre){
-    vector<string> saida = codigoPendencias;
+vector<int> o2(vector<int> codigoPendencias, vector<string> &pre){
+    vector<int> saida = codigoPendencias;
     for(auto [nome, simbolo] : tabela_simbolos){
         int pendencia = simbolo.pendencia;
         int endereco = simbolo.endereco;
         while(pendencia != -1){
-            saida[pendencia] = to_string(endereco);
-            pendencia = stoi(codigoPendencias[pendencia]);
+            saida[pendencia] = endereco;
+            pendencia = codigoPendencias[pendencia];
         }
+    }
+    for(int i= 0; i< (int)saida.size(); i++){
+        saida[i] += soma_nas_variaveis[i];
     }
     return saida;
 }
@@ -472,10 +519,10 @@ int main(int argc, char *argv[])
     }
     arquivo.close();
     vector<string> codigoExpandido = preProcessamento(codigo);
-    vector<string> codigoO1 = o1(codigoExpandido);
+    vector<int> codigoO1 = o1(codigoExpandido);
     for(auto x : codigoO1) cout << x << " ";
     cout << "\n";
-    vector<string> codigoO2 = o2(codigoO1, codigoExpandido);
+    vector<int> codigoO2 = o2(codigoO1, codigoExpandido);
     for(auto x : codigoO2) cout << x << " ";
     cout << "\n";
     /*string nome_arquivo_pre = nome_arquivo_entrada;
