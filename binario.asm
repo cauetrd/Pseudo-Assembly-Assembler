@@ -44,10 +44,9 @@ next:
 space 
 aux: space 
 
-\r
-resto: space 
+		resto: space 
 
-one: const 1 
-minus_one: 
+one: 	const 		1 
+		minus_one: 
 
-const -1
+			const -1

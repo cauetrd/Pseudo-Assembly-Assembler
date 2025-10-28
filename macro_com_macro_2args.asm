@@ -15,7 +15,18 @@ input a
 input b 
 lbl: 
 
-adding a, b 
-stop 
+adding a, b
+lbl2: 
+    
+            adding c,d 
+
+
+
+            label3:
+        stop 
+
+
 a: space 
 b: space
+c: space 
+d: space

@@ -4,5 +4,6 @@ store &b
 endmacro 
 
 x a,ge, c 
-a,ge: space 
+ge: space 
+a: space
 c: space

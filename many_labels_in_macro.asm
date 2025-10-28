@@ -6,6 +6,6 @@ aquele:
 endmacro 
 load    
 main: many 
-load a b c 
+load a + 3
 stop 
 a: space 

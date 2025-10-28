@@ -43,7 +43,7 @@ string normalizaExpressao(string &linha)
                 i++;
             }
         }
-        /*else if (atual == ',')
+        else if (atual == ',')
         {
 
             while (!resultado.empty() && resultado.back() == ' ')
@@ -57,7 +57,7 @@ string normalizaExpressao(string &linha)
             {
                 i++;
             }
-        }*/
+        }
         else
         {
             resultado += atual;
@@ -215,13 +215,14 @@ vector<string> expandeMacro(string &nome, vector<string> argumentos)
                 string limpa_token = tiraVirgula(tokens[j]);
                 if (limpa_token == local_arg)
                 {
-                    if (tokens[j]!=limpa_token){
+                    if (tokens[j] != limpa_token)
+                    {
                         tokens[j] = argumentos[arg] + ",";
                     }
-                    else {
+                    else
+                    {
                         tokens[j] = argumentos[arg];
                     }
-                    //tokens[j] = argumentos[arg] + (tokens[j] != limpa_token ? "," : "");
                 }
             }
             linha = juntaTokens(tokens);
@@ -333,7 +334,7 @@ vector<string> expandeTodasMacros(vector<string> cod)
                     string limpa_token = tiraVirgula(tokens[j]);
                     if (limpa_token == arg)
                     {
-                        if (limpa_token != tokens[j])
+                        if (tokens[j] != limpa_token)
                         {
                             tokens[j] = arg_positional + ",";
                         }
@@ -442,6 +443,7 @@ vector<string> expandeTodasMacros(vector<string> cod)
     }
     return expanded_code;
 }
+
 vector<string> preProcessamento(vector<string> codigo)
 {
     vector<string> codigoExpandido;
@@ -450,10 +452,8 @@ vector<string> preProcessamento(vector<string> codigo)
     {
         maisculas(linha);
         tiraComentario(linha);
-
         linha = normalizaExpressao(linha);
-
-        vector<string> tokens = getTokens(linha);
+        vector<string> tokens = getTokens(linha); // tira espaços em branco, tabs e enters
         linha = juntaTokens(tokens);
         if (linha.empty())
         {
@@ -485,6 +485,10 @@ vector<string> preProcessamento(vector<string> codigo)
         codigoExpandido.push_back(label.substr(0, label.size() - 1));
     }
     codigoExpandido = expandeTodasMacros(codigoExpandido);
+    for (int i = 0; i < codigoExpandido.size(); ++i)
+    {
+        codigoExpandido[i] = normalizaExpressao(codigoExpandido[i]);
+    }
     vector<string> codigoFinal;
     string label_final;
     for (string linha : codigoExpandido)
@@ -569,6 +573,7 @@ vector<string> o1(vector<string> &pre)
                 s.endereco = endereco;
                 s.pendencia = -1;
                 tabela_simbolos.insert({label, s});
+                cout << "simbolo: " << label << " endereço: " << endereco << "\n";
             }
             else
             {
@@ -578,6 +583,7 @@ vector<string> o1(vector<string> &pre)
                     pre[linha_pre] += "   erro semântico"; // simbolo redefinido
                 }
                 tabela_simbolos[label].endereco = endereco;
+                 cout << "simbolo: " << label << " endereço: " << endereco << "\n";
             }
             tokens.erase(tokens.begin());
         }
@@ -598,7 +604,6 @@ vector<string> o1(vector<string> &pre)
                 valor_token += "0";
             }
             saida.push_back(valor_token);
-            endereco++;
         }
         else if (instrucao == "CONST")
         {
@@ -635,6 +640,12 @@ vector<string> o1(vector<string> &pre)
                 string arg1 = tokens[1];
                 arg1 = tiraVirgula(arg1);
                 string arg2 = tokens[2];
+                if (arg1.empty())
+                {
+                    pre[linha_pre] += " erro sintático";
+                    continue;
+                }
+
                 string valor_arg1 = valorDaVariavelNoEndereco(arg1, endereco);
                 endereco_para_linha_pre[endereco] = linha_pre;
                 saida.push_back(valor_arg1);
@@ -677,16 +688,17 @@ vector<string> o2(vector<string> codigoPendencias, vector<string> &pre)
     vector<string> saida = codigoPendencias;
     for (auto [nome, simbolo] : tabela_simbolos)
     {
+        cout << nome << " ";
         int pendencia = simbolo.pendencia;
         int endereco = simbolo.endereco;
         if (endereco == -1)
         {
             while (pendencia != -1)
             {
-                auto iterator = endereco_para_linha_pre.find(pendencia);
-                if (iterator != endereco_para_linha_pre.end())
+                auto prox_endereco = endereco_para_linha_pre.find(pendencia);
+                if (prox_endereco != endereco_para_linha_pre.end())
                 {
-                    int linha_pre = iterator->second;
+                    int linha_pre = prox_endereco->second;
                     pre[linha_pre] += " erro semântico"; // simbolo nao definido
                 }
                 pendencia = stoi(codigoPendencias[pendencia]);
@@ -703,7 +715,6 @@ vector<string> o2(vector<string> codigoPendencias, vector<string> &pre)
     }
     return saida;
 }
-
 int main(int argc, char *argv[])
 {
     string nome_arquivo_entrada = argv[1];

@@ -1,5 +1,10 @@
+		load 	a
+		input b 
+					output    	     c
+     stop
 
-		input 			a 
-output 		a 
-	STOP
-				a: SpAcE
+a: const 		5
+	b:
+			  space 
+    c:
+	const 10 
