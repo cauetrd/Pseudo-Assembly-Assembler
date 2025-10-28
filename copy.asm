@@ -1,0 +1,5 @@
+COPY A, B
+COPY A + 99, B
+COPY A - 2, B + 3
+A: CONST 5
+B: CONST 10

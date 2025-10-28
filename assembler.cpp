@@ -369,9 +369,8 @@ int adicionarSomaNoVetor (const vector<string>& tokens){
         if(tokens[i] == "+" || tokens[i] == "-"){
             string sinal = tokens[i];
             string prox = tokens[i+1];
-            int valor_prox = stoi(prox);
-            if(sinal == "-")
-            valor -= valor_prox;
+            valor = stoi(prox);
+            if(sinal == "-") valor = -valor;
         }
     }
     return valor;
@@ -417,16 +416,38 @@ static void handleCONST(const vector<string>& tokens, vector<int>& saida, int &e
 
 static void handleCOPY(const vector<string>& tokens, vector<int>& saida, int &endereco)
 {
-    if (tokens.size() != 3) {
+    int posicao_virgula = -1;
+    vector<string> variavel1;
+    vector<string> variavel2;
+
+    for(int i = 1; i<(int) tokens.size(); i++){
+        string token_atual = tokens[i];
+        
+        if(posicao_virgula ==-1) variavel1.push_back(tiraVirgula(token_atual));
+        else variavel2.push_back(tiraVirgula(token_atual));
+    
+        if(token_atual[token_atual.size()-1] == ','){
+                if(posicao_virgula != -1){
+                    cout << "tem duas virgulas " << endereco << "\n";
+                    return;
+                }
+        posicao_virgula = i;
+        }
+    }
+    if(posicao_virgula==-1){
         cout << "erro número de argumentos inválido para COPY; endereço " << endereco << "\n";
         return;
     }
-    string arg1 = tokens[1];
-    string arg2 = tokens[2];
+    string arg1 = variavel1[0];
+    string arg2 = variavel2[0];
     int valor_arg1 = valorDaVariavelNoEndereco(arg1, endereco);
+    int valor_soma1 = adicionarSomaNoVetor(variavel1);
+    soma_nas_variaveis[endereco] = valor_soma1;
     saida.push_back(valor_arg1);
     endereco++;
     int valor_arg2 = valorDaVariavelNoEndereco(arg2, endereco);
+    int valor_soma2 = adicionarSomaNoVetor(variavel2);
+    soma_nas_variaveis[endereco] = valor_soma2;
     saida.push_back(valor_arg2);
     endereco++;
 }
