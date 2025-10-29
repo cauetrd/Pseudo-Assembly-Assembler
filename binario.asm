@@ -15,7 +15,7 @@ loop: load a
     copy next, a 
     jmp loop
 is_neg:
- copy one, neg 
+ copy one,neg 
 load a 
 mult minus_one 
 store a 

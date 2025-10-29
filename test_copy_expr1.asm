@@ -1,5 +1,5 @@
 A: SPACE 2
 
-COPY A + 1, B
+COPY A+ 1, B+5
 STOP
-B: SPACE 1
+B: SPACE 10

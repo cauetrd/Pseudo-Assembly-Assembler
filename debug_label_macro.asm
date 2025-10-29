@@ -2,6 +2,7 @@ Simple: MACRO
 LOAD A
 ENDMACRO
 
-test: Simple
+a: space
+t%est: simple
 STOP
-A: SPACE
+

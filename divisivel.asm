@@ -16,17 +16,17 @@ main: input a
 input b 
 divisivel a, B
 
-
-sim: output one 
-jmp repeat 
+one: const 1 
 nao: output zero 
-
+jmp repeat
+FIM: stop 
 repeat:  input again 
 load again
 jmpp Main
-stop 
+JMP FIM 
+sim: output one 
+jmp repeat 
 a: space 
 b: space 
-one: const 1 
 zero: const 0
 again: space

@@ -8,16 +8,18 @@ vector<string> instrucoes = {
     "ADD", "SUB", "MULT", "DIV", "JMP", "JMPN", "JMPP", "JMPZ",
     "COPY", "LOAD", "STORE", "INPUT", "OUTPUT", "STOP"};
 
-map<string, int> mnt;                  // mapeia o nome da macro para a linha da mdt que o corpo dela começa
-vector<string> mdt;                    // guarda o corpo das macros
+map<string, int> mnt; //mapeia o nome da macro para a linha da mdt que o corpo dela começa
+vector<string> mdt; 
+int soma_nas_variaveis[10000];
 map<int, int> endereco_para_linha_pre; // mapeia endereco da pendencia para linha do arquivo .pre
+
 struct Simbolo
 {
     int endereco;
     int pendencia;
 };
 
-map<string, Simbolo> tabela_simbolos;
+map<string,Simbolo> tabela_simbolos;
 
 string normalizaExpressao(string &linha)
 {
@@ -519,176 +521,258 @@ vector<string> preProcessamento(vector<string> codigo)
     return codigoFinal;
 }
 
-string valorDaVariavelNoEndereco(string &var, int endereco)
-{
-    string saida;
-    if (tabela_simbolos.find(var) == tabela_simbolos.end())
-    { // se o símbolo ainda não está na tabela
-        Simbolo s;
-        s.endereco = -1;
-        s.pendencia = endereco;
-        tabela_simbolos.insert({var, s});
-        saida = "-1"; // pendência
-    }
-    else
-    {
-        if (tabela_simbolos[var].endereco != -1)
-        { // se o símbolo já foi definido
-            saida = to_string(tabela_simbolos[var].endereco);
+int valorDaVariavelNoEndereco(string& var, int endereco, int linha_pre){
+        int saida;
+        if( tabela_simbolos.find(var) == tabela_simbolos.end() ){ //se o símbolo ainda não está na tabela
+            Simbolo s;
+            s.endereco = -1;
+            s.pendencia = endereco;
+            tabela_simbolos.insert({var, s});
+            endereco_para_linha_pre[endereco] = linha_pre; 
+            saida = -1; //pendência
+        }else{
+            if(tabela_simbolos[var].endereco != -1){ //se o símbolo já foi definido
+                saida = tabela_simbolos[var].endereco + soma_nas_variaveis[endereco];
+            }else{
+                saida = tabela_simbolos[var].pendencia;
+                tabela_simbolos[var].pendencia = endereco;
+                endereco_para_linha_pre[endereco] = linha_pre; // Map pendency address to source line
+            }
         }
-        else
-        {
-            saida = to_string(tabela_simbolos[var].pendencia);
-            tabela_simbolos[var].pendencia = endereco;
-        }
-    }
-    return saida;
+        return saida;
 }
 
-vector<string> o1(vector<string> &pre)
+int adicionarSomaNoVetor (const vector<string>& tokens){
+    int valor = 0; //caso não tenha soma ou subtração
+    for(int i= 0; i< (int) tokens.size() -1; i++){
+        if(tokens[i] == "+" || tokens[i] == "-"){
+            string sinal = tokens[i];
+            string prox = tokens[i+1];
+            valor = stoi(prox);
+            if(sinal == "-") valor = -valor;
+        }
+    }
+    return valor;
+}
+
+static void processaLabel(vector<string>& tokens, int &endereco, vector <string> & pre, int linha_pre)
 {
-    vector<string> saida;
+    if (tokens.empty()) return;
+    string label = tokens[0];
+    if (label.empty()) return;
+    if (label[(int)label.size() - 1] == ':') {
+        label = label.substr(0, (int)label.size() - 1);
+        bool temErro = verificaErroLabel(label);
+        if (temErro){
+        pre [linha_pre] += " erro léxico";
+        }
+        if (tabela_simbolos.find(label) == tabela_simbolos.end()) {
+            Simbolo s;
+            s.endereco = endereco;
+            s.pendencia = -1;
+            tabela_simbolos.insert({label, s});
+        } else {
+            if ((tabela_simbolos)[label].endereco!=-1){
+                pre [linha_pre] += " erro semântico";
+            }
+            tabela_simbolos[label].endereco = endereco;
+        }
+        tokens.erase(tokens.begin());
+    }
+}
+
+static void handleSPACE(const vector<string>& tokens, vector<int>& saida, int &endereco)
+{
+    int qtd_zeros = 1;
+    if (tokens.size() > 1) {
+        qtd_zeros = stoi(tokens[1]);
+    }
+    for(int i= 0; i<qtd_zeros; i++){
+        saida.push_back(0);
+        endereco++;
+    }
+}
+
+static void handleCONST(const vector<string>& tokens, vector<int>& saida, int &endereco)
+{
+    int valor_token = stoi(tokens[1]);
+    saida.push_back(valor_token);
+    endereco++;
+}
+
+static void handleCOPY(const vector<string>& tokens, vector<int>& saida, int &endereco, int linha_pre, vector<string> &pre)
+{
+    if (tokens.size() != 3 && tokens.size() != 5 && tokens.size() != 7) {
+        pre[linha_pre] += " erro sintático"; 
+        return;
+    }
+    
+    if (tokens.size() == 5) {
+        bool plus_at_2 = (tokens[2] == "+");
+        bool plus_at_3 = (tokens[3] == "+");
+        if (!(tokens[2] == "+") && !(tokens[3]== "+")) {
+            pre[linha_pre] += " erro sintático";
+            return;
+        }
+        if ((tokens[2] == "+") && (tokens[3]== "+")) {
+            pre[linha_pre] += " erro sintático"; 
+            return;
+        }
+    }
+    else if (tokens.size() == 7) {
+        if (tokens[2] != "+" || tokens[5] != "+") {
+            pre[linha_pre] += " erro sintático"; 
+            return;
+        }
+    }
+    
+    int posicao_virgula = -1;
+    vector<string> variavel1;
+    vector<string> variavel2;
+
+    for(int i = 1; i<(int) tokens.size(); i++){
+        string token_atual = tokens[i];
+        
+        if(!token_atual.empty() && token_atual[0] == ','){
+            if(posicao_virgula != -1){
+            }
+            posicao_virgula = i;
+            string sem_virgula = token_atual.substr(1);
+            if(!sem_virgula.empty()) {
+                variavel2.push_back(sem_virgula);
+            }
+        }
+        else {
+            if(posicao_virgula ==-1) variavel1.push_back(tiraVirgula(token_atual));
+            else variavel2.push_back(tiraVirgula(token_atual));
+        
+            if(token_atual[token_atual.size()-1] == ','){
+                    if(posicao_virgula != -1){
+                    }
+            posicao_virgula = i;
+            }
+        }
+    }
+    if(posicao_virgula==-1){
+        pre[linha_pre] += " erro sintático"; // erro número de argumentos inválido para COPY
+        return;
+    }
+    
+    if (variavel1.empty() || variavel1[0].empty()) {
+        pre[linha_pre] += " erro sintático"; // primeiro argumento vazio
+        return;
+    }
+    
+    if (variavel2.empty() || variavel2[0].empty()) {
+        pre[linha_pre] += " erro sintático"; // segundo argumento vazio
+        return;
+    }
+    
+    string arg1 = variavel1[0];
+    arg1= tiraVirgula (arg1);
+    bool temErro = verificaErroLabel(arg1);
+    if (temErro){
+        pre [linha_pre] += " erro léxico";
+    }
+    string arg2 = variavel2[0];
+    temErro = verificaErroLabel (arg2);
+        if (temErro){
+        pre [linha_pre] += " erro léxico";
+    }
+    
+    int valor_soma1 = adicionarSomaNoVetor(variavel1);
+    soma_nas_variaveis[endereco] = valor_soma1;
+    int valor_arg1 = valorDaVariavelNoEndereco(arg1, endereco, linha_pre);
+    saida.push_back(valor_arg1);
+    endereco++;
+    int valor_soma2 = adicionarSomaNoVetor(variavel2);
+    soma_nas_variaveis[endereco] = valor_soma2;
+    int valor_arg2 = valorDaVariavelNoEndereco(arg2, endereco, linha_pre);
+    saida.push_back(valor_arg2);
+    endereco++;
+}
+
+static void handleSingleArgInstruction(const string& instrucao, const vector<string>& tokens, vector <string> & pre, vector<int>& saida, int &endereco, int & linha_pre)
+{
+    if (tokens.size() < 2) {
+        pre[linha_pre]+= " erro sintático";
+        return;
+    }
+    else if (tokens.size() > 4 || (tokens.size() == 3) || (tokens.size() == 4 && tokens[2] != "+")){
+        pre[linha_pre]+= " erro sintático";
+        return;
+    }
+    string arg = tokens[1];
+    bool temErro = verificaErroLabel(arg);
+    if (temErro){
+        pre [linha_pre] += " erro léxico";
+    }
+    
+    soma_nas_variaveis[endereco] = adicionarSomaNoVetor(tokens);
+    int valor_arg = valorDaVariavelNoEndereco(arg, endereco, linha_pre);
+    saida.push_back(valor_arg);
+    endereco_para_linha_pre[endereco] = linha_pre;
+    endereco++;
+}
+
+static void handleInstruction(const string& instrucao, const vector<string>& tokens, vector<int>& saida, int &endereco, vector<string>& pre, int linha_pre)
+{
+    if (opcode.find(instrucao) == opcode.end()) {
+        pre [linha_pre] += " erro sintático";
+        return;
+    }
+    int valor_token = opcode[instrucao];
+    saida.push_back(valor_token);
+    endereco++;
+
+    if (instrucao == "STOP") {
+        if (tokens.size() > 1) {
+            pre[linha_pre] += " erro sintático";
+        }
+    } else if (instrucao == "COPY") {
+        handleCOPY(tokens, saida, endereco, linha_pre, pre);
+    } else {
+        handleSingleArgInstruction(instrucao, tokens, pre, saida, endereco, linha_pre);
+    }
+}
+
+vector<int> o1(vector<string> &pre){
+    vector<int> saida;
     int endereco = 0;
-
-    for (int linha_pre = 0; linha_pre < pre.size(); ++linha_pre)
-    {
-        string &linha = pre[linha_pre];
+    int linha_pre = 0;
+    for (string linha : pre) {
         vector<string> tokens = getTokens(linha);
-        if (tokens.empty())
+        if (tokens.empty()) {
+            linha_pre++;
             continue;
-
-        string label = tokens[0];
-        if (label[(int)label.size() - 1] == ':')
-        {                                                   // definição de variável
-            label = label.substr(0, (int)label.size() - 1); // tirar ':'
-            bool temErro = verificaErroLabel(label);
-            if (temErro)
-            {
-                pre[linha_pre] += " erro léxico";
-            }
-
-            if (tabela_simbolos.find(label) == tabela_simbolos.end())
-            { // se o símbolo ainda não está na tabela
-                Simbolo s;
-                s.endereco = endereco;
-                s.pendencia = -1;
-                tabela_simbolos.insert({label, s});
-                cout << "simbolo: " << label << " endereço: " << endereco << "\n";
-            }
-            else
-            {
-                Simbolo atual = tabela_simbolos[label];
-                if (atual.endereco != -1)
-                {
-                    pre[linha_pre] += "   erro semântico"; // simbolo redefinido
-                }
-                tabela_simbolos[label].endereco = endereco;
-                 cout << "simbolo: " << label << " endereço: " << endereco << "\n";
-            }
-            tokens.erase(tokens.begin());
         }
 
-        string valor_token = "";
-        if (tokens.empty())
+        processaLabel(tokens, endereco, pre, linha_pre);
+
+        if (tokens.empty()) {
+            linha_pre++;
             continue;
+        }
+
         string instrucao = tokens[0];
-        if (instrucao == "SPACE")
-        {
-            int qtd_zeros = 1;
-            if (tokens.size() > 1)
-            {
-                qtd_zeros = stoi(tokens[1]);
-            }
-            for (int i = 0; i < qtd_zeros; i++)
-            {
-                valor_token += "0";
-            }
-            saida.push_back(valor_token);
-        }
-        else if (instrucao == "CONST")
-        {
-            valor_token = tokens[1];
-            saida.push_back(valor_token);
-            endereco++;
-        }
-        else
-        { // instrução}
-            if (opcode.find(instrucao) == opcode.end())
-            {
-                pre[linha_pre] += " erro sintático"; // instrucao invalida
-                continue;
-            }
 
-            valor_token = to_string(opcode[instrucao]);
-            saida.push_back(valor_token);
-            endereco++;
-
-            if (instrucao == "STOP")
-            {
-                if (tokens.size() > 1)
-                {
-                    pre[linha_pre] += " erro sintático"; // stop com argumento
-                }
-            }
-            else if (instrucao == "COPY")
-            {
-                if (tokens.size() != 3)
-                {
-                    pre[linha_pre] += " erro sintático"; // copy com numero errado de argumentos
-                    continue;
-                }
-                string arg1 = tokens[1];
-                arg1 = tiraVirgula(arg1);
-                string arg2 = tokens[2];
-                if (arg1.empty())
-                {
-                    pre[linha_pre] += " erro sintático";
-                    continue;
-                }
-
-                string valor_arg1 = valorDaVariavelNoEndereco(arg1, endereco);
-                endereco_para_linha_pre[endereco] = linha_pre;
-                saida.push_back(valor_arg1);
-                endereco++;
-                string valor_arg2 = valorDaVariavelNoEndereco(arg2, endereco);
-                endereco_para_linha_pre[endereco] = linha_pre;
-                saida.push_back(valor_arg2);
-                endereco++;
-            }
-            else
-            {
-                if (tokens.size() != 2 && tokens.size() != 4)
-                {
-                    pre[linha_pre] += " erro sintatico"; // numero errado de argumentos
-                    continue;
-                }
-                else if (tokens.size() == 4 && tokens[2] != "+")
-                {
-                    pre[linha_pre] += " erro sintatico"; // numero errado de argumentos
-                    continue;
-                }
-                string arg = tokens[1];
-                bool temErro = verificaErroLabel(arg);
-                if (temErro)
-                {
-                    pre[linha_pre] += " erro léxico";
-                }
-                string valor_arg = valorDaVariavelNoEndereco(arg, endereco);
-                endereco_para_linha_pre[endereco] = linha_pre;
-                saida.push_back(valor_arg);
-                endereco++;
-            }
+        if (instrucao == "SPACE") {
+            handleSPACE(tokens, saida, endereco);
+        } else if (instrucao == "CONST") {
+            handleCONST(tokens, saida, endereco);
+        } else {
+            handleInstruction(instrucao, tokens, saida, endereco, pre, linha_pre);
         }
+        linha_pre++;
     }
+
     return saida;
 }
 
-vector<string> o2(vector<string> codigoPendencias, vector<string> &pre)
-{
-    vector<string> saida = codigoPendencias;
-    for (auto [nome, simbolo] : tabela_simbolos)
-    {
-        cout << nome << " ";
+
+vector<int> o2(vector<int> codigoPendencias, vector<string> &pre){
+    vector<int> saida = codigoPendencias;
+    for(auto [nome, simbolo] : tabela_simbolos){
         int pendencia = simbolo.pendencia;
         int endereco = simbolo.endereco;
         if (endereco == -1)
@@ -701,20 +785,20 @@ vector<string> o2(vector<string> codigoPendencias, vector<string> &pre)
                     int linha_pre = prox_endereco->second;
                     pre[linha_pre] += " erro semântico"; // simbolo nao definido
                 }
-                pendencia = stoi(codigoPendencias[pendencia]);
+                saida[pendencia] = endereco;
+                pendencia = codigoPendencias[pendencia];
             }
         }
-        else
-        {
-            while (pendencia != -1)
-            {
-                saida[pendencia] = to_string(endereco);
-                pendencia = stoi(codigoPendencias[pendencia]);
-            }
+        else {
+        while(pendencia != -1){
+            saida[pendencia] = endereco + soma_nas_variaveis[pendencia];
+            pendencia = codigoPendencias[pendencia];
+        }
         }
     }
     return saida;
 }
+
 int main(int argc, char *argv[])
 {
     string nome_arquivo_entrada = argv[1];
@@ -727,8 +811,8 @@ int main(int argc, char *argv[])
     }
     arquivo.close();
     vector<string> codigoExpandido = preProcessamento(codigo);
-    vector<string> codigoO1 = o1(codigoExpandido);
-    vector<string> codigoO2 = o2(codigoO1, codigoExpandido);
+    vector<int> codigoO1 = o1(codigoExpandido);
+    vector<int> codigoO2 = o2(codigoO1, codigoExpandido);
     /*for (string linha : codigoExpandido)
 {
     cout << linha << "\n";
