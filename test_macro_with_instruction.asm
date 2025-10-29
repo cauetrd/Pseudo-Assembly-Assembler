@@ -1,0 +1,7 @@
+Empty: MACRO 
+LOAD A
+ENDMACRO
+
+Empty
+STOP
+A: SPACE

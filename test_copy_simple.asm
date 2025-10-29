@@ -1,0 +1,4 @@
+COPY A, B
+STOP
+A: SPACE 1
+B: SPACE 1

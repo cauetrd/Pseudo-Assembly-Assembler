@@ -1,0 +1,5 @@
+A: SPACE 3
+B: SPACE 2
+LOAD A + 2
+ADD B + 1 
+STOP

@@ -1,0 +1,11 @@
+FOO: 
+MACRO     FOO
+    LOAD      FOO
+    ADD FOO
+lbl:
+    STORE FOO
+ENDMACRO
+
+FOO A
+STOP
+A: SPACE

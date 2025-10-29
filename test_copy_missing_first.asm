@@ -1,0 +1,3 @@
+COPY ,B
+STOP
+B: SPACE 1

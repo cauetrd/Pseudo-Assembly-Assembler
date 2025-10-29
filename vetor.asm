@@ -1,0 +1,3 @@
+LOAD A + 1
+ADD X+2
+COPY 

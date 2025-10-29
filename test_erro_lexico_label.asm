@@ -1,0 +1,3 @@
+x: space
+1INVALID: LOAD X
+STOP

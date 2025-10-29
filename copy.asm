@@ -1,5 +1,6 @@
 COPY A, B
 COPY A + 99, B
-COPY A - 2, B + 3
+COPY A + 2, B + 3
+COPY A,B 
 A: CONST 5
 B: CONST 10

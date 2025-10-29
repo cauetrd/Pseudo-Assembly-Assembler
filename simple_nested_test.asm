@@ -1,0 +1,11 @@
+MACRO2: MACRO a, b
+    LOAD b
+    STORE a
+ENDMACRO
+
+input b
+MACRO2 A, B
+STOP
+
+A: SPACE
+B: SPACE

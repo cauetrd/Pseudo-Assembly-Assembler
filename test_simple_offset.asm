@@ -1,0 +1,3 @@
+LOAD Y +2
+STOP
+Y: SPACE 120
