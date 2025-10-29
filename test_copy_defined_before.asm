@@ -1,4 +1,5 @@
 X: SPACE 2
-Y: SPACE 2
-COPY X + 1, Y + 1
+Y: 
+SPACE 2
+COPY X+ 1,Y +1
 STOP

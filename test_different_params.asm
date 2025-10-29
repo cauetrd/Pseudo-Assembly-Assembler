@@ -8,5 +8,6 @@ macro2: macro &y, &z
 macro1 a 
 macro2 a, b
 stop 
-a: space 
+a:
+ space   2
 b: space

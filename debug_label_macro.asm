@@ -1,5 +1,5 @@
 Simple: MACRO
-LOAD A
+LOAD 1a
 ENDMACRO
 
 a: space

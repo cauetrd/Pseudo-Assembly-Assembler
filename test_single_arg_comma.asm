@@ -1,0 +1,5 @@
+ADD A,
+LOAD B,
+OUTPUT C,
+JMP D,
+STOP
