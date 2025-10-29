@@ -3,6 +3,7 @@ test: macro &a, &B
     mult &a 
     store &b 
     mult &b 
+    lbl: 
     output &a
 end:
 endmacro

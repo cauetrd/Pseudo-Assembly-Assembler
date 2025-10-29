@@ -5,10 +5,13 @@ jmpz is_zero
 loop: load a 
     jmpz fim 
     div two 
+
+    
+    
     store next 
-    mult two 
+       mult two 
     store aux 
-    load a 
+      load a 
     sub aux 
     store resto 
     output resto
@@ -37,7 +40,8 @@ acaba: stop
 a: space 
 zero: const 0
 neg: space 
-two: const 2 
+two: 
+const 2 
 next: 
 
 

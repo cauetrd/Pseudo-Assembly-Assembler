@@ -1,0 +1,5 @@
+COPY A, B, C
+STOP
+A: CONST 1
+B: CONST 2
+C: CONST 3

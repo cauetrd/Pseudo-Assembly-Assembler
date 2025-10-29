@@ -1,0 +1,5 @@
+COPY A + 1, B, C + 2
+STOP
+A: CONST 10
+B: CONST 20
+C: CONST 30

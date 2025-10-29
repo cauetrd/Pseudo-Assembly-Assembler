@@ -14,3 +14,4 @@ LBL9:
 X:	CONST	1
 Y:	CONST	2
 Z:	SPACE
+lbl: 
