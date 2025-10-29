@@ -17,6 +17,7 @@ struct Simbolo
 {
     int endereco;
     int pendencia;
+    bool definido;
 };
 
 map<string,Simbolo> tabela_simbolos;
@@ -527,16 +528,17 @@ int valorDaVariavelNoEndereco(string& var, int endereco, int linha_pre){
             Simbolo s;
             s.endereco = -1;
             s.pendencia = endereco;
+            s.definido = false;
             tabela_simbolos.insert({var, s});
             endereco_para_linha_pre[endereco] = linha_pre; 
             saida = -1; //pendência
         }else{
-            if(tabela_simbolos[var].endereco != -1){ //se o símbolo já foi definido
+            if(tabela_simbolos[var].definido){ //se o símbolo já foi definido
                 saida = tabela_simbolos[var].endereco + soma_nas_variaveis[endereco];
             }else{
                 saida = tabela_simbolos[var].pendencia;
                 tabela_simbolos[var].pendencia = endereco;
-                endereco_para_linha_pre[endereco] = linha_pre; // Map pendency address to source line
+                endereco_para_linha_pre[endereco] = linha_pre; 
             }
         }
         return saida;
@@ -545,12 +547,11 @@ int valorDaVariavelNoEndereco(string& var, int endereco, int linha_pre){
 int adicionarSomaNoVetor (const vector<string>& tokens){
     int valor = 0; //caso não tenha soma ou subtração
     for(int i= 0; i< (int) tokens.size() -1; i++){
-        if(tokens[i] == "+" || tokens[i] == "-"){
+        if(tokens[i] == "+"){
             string sinal = tokens[i];
             string prox = tokens[i+1];
-            valor = stoi(prox);
-            if(sinal == "-") valor = -valor;
-        }
+            valor = stoi(prox); 
+      }
     }
     return valor;
 }
@@ -564,18 +565,20 @@ static void processaLabel(vector<string>& tokens, int &endereco, vector <string>
         label = label.substr(0, (int)label.size() - 1);
         bool temErro = verificaErroLabel(label);
         if (temErro){
-        pre [linha_pre] += " erro léxico";
+        cout << "Erro lexico na linha " << (linha_pre + 1) << endl;
         }
         if (tabela_simbolos.find(label) == tabela_simbolos.end()) {
             Simbolo s;
             s.endereco = endereco;
             s.pendencia = -1;
+            s.definido = true;
             tabela_simbolos.insert({label, s});
         } else {
-            if ((tabela_simbolos)[label].endereco!=-1){
-                pre [linha_pre] += " erro semântico";
+            if (tabela_simbolos[label].definido){
+                cout << "Erro semantico na linha " << (linha_pre + 1) << endl;
             }
             tabela_simbolos[label].endereco = endereco;
+            tabela_simbolos[label].definido = true;
         }
         tokens.erase(tokens.begin());
     }
@@ -603,25 +606,22 @@ static void handleCONST(const vector<string>& tokens, vector<int>& saida, int &e
 static void handleCOPY(const vector<string>& tokens, vector<int>& saida, int &endereco, int linha_pre, vector<string> &pre)
 {
     if (tokens.size() != 3 && tokens.size() != 5 && tokens.size() != 7) {
-        pre[linha_pre] += " erro sintático"; 
+        cout << "Erro sintatico na linha " << (linha_pre + 1) << endl;
         return;
     }
-    
     if (tokens.size() == 5) {
-        bool plus_at_2 = (tokens[2] == "+");
-        bool plus_at_3 = (tokens[3] == "+");
         if (!(tokens[2] == "+") && !(tokens[3]== "+")) {
-            pre[linha_pre] += " erro sintático";
+            cout << "Erro sintatico na linha " << (linha_pre + 1) << endl;
             return;
         }
         if ((tokens[2] == "+") && (tokens[3]== "+")) {
-            pre[linha_pre] += " erro sintático"; 
+            cout << "Erro sintatico na linha " << (linha_pre + 1) << endl;
             return;
         }
     }
     else if (tokens.size() == 7) {
         if (tokens[2] != "+" || tokens[5] != "+") {
-            pre[linha_pre] += " erro sintático"; 
+            cout << "Erro sintatico na linha " << (linha_pre + 1) << endl;
             return;
         }
     }
@@ -654,17 +654,17 @@ static void handleCOPY(const vector<string>& tokens, vector<int>& saida, int &en
         }
     }
     if(posicao_virgula==-1){
-        pre[linha_pre] += " erro sintático"; // erro número de argumentos inválido para COPY
+        cout << "Erro sintatico na linha " << (linha_pre + 1) << endl;
         return;
     }
     
     if (variavel1.empty() || variavel1[0].empty()) {
-        pre[linha_pre] += " erro sintático"; // primeiro argumento vazio
+        cout << "Erro sintatico na linha " << (linha_pre + 1) << endl;
         return;
     }
     
     if (variavel2.empty() || variavel2[0].empty()) {
-        pre[linha_pre] += " erro sintático"; // segundo argumento vazio
+        cout << "Erro sintatico na linha " << (linha_pre + 1) << endl;
         return;
     }
     
@@ -672,12 +672,12 @@ static void handleCOPY(const vector<string>& tokens, vector<int>& saida, int &en
     arg1= tiraVirgula (arg1);
     bool temErro = verificaErroLabel(arg1);
     if (temErro){
-        pre [linha_pre] += " erro léxico";
+        cout << "Erro lexico na linha " << (linha_pre + 1) << endl;
     }
     string arg2 = variavel2[0];
     temErro = verificaErroLabel (arg2);
         if (temErro){
-        pre [linha_pre] += " erro léxico";
+        cout << "Erro lexico na linha " << (linha_pre + 1)  << endl;
     }
     
     int valor_soma1 = adicionarSomaNoVetor(variavel1);
@@ -695,17 +695,17 @@ static void handleCOPY(const vector<string>& tokens, vector<int>& saida, int &en
 static void handleSingleArgInstruction(const string& instrucao, const vector<string>& tokens, vector <string> & pre, vector<int>& saida, int &endereco, int & linha_pre)
 {
     if (tokens.size() < 2) {
-        pre[linha_pre]+= " erro sintático";
+        cout << "Erro sintatico na linha " << (linha_pre + 1) << endl;
         return;
     }
     else if (tokens.size() > 4 || (tokens.size() == 3) || (tokens.size() == 4 && tokens[2] != "+")){
-        pre[linha_pre]+= " erro sintático";
+        cout << "Erro sintatico na linha " << (linha_pre + 1) << endl;
         return;
     }
     string arg = tokens[1];
     bool temErro = verificaErroLabel(arg);
     if (temErro){
-        pre [linha_pre] += " erro léxico";
+        cout << "Erro lexico na linha " << (linha_pre + 1) << endl;
     }
     
     soma_nas_variaveis[endereco] = adicionarSomaNoVetor(tokens);
@@ -718,7 +718,7 @@ static void handleSingleArgInstruction(const string& instrucao, const vector<str
 static void handleInstruction(const string& instrucao, const vector<string>& tokens, vector<int>& saida, int &endereco, vector<string>& pre, int linha_pre)
 {
     if (opcode.find(instrucao) == opcode.end()) {
-        pre [linha_pre] += " erro sintático";
+        cout << "Erro sintatico na linha " << (linha_pre + 1) << endl;
         return;
     }
     int valor_token = opcode[instrucao];
@@ -727,7 +727,7 @@ static void handleInstruction(const string& instrucao, const vector<string>& tok
 
     if (instrucao == "STOP") {
         if (tokens.size() > 1) {
-            pre[linha_pre] += " erro sintático";
+            cout << "Erro sintatico na linha " << (linha_pre + 1) << ": STOP não deve ter argumentos" << endl;
         }
     } else if (instrucao == "COPY") {
         handleCOPY(tokens, saida, endereco, linha_pre, pre);
@@ -775,7 +775,7 @@ vector<int> o2(vector<int> codigoPendencias, vector<string> &pre){
     for(auto [nome, simbolo] : tabela_simbolos){
         int pendencia = simbolo.pendencia;
         int endereco = simbolo.endereco;
-        if (endereco == -1)
+        if (!simbolo.definido)
         {
             while (pendencia != -1)
             {
@@ -783,7 +783,7 @@ vector<int> o2(vector<int> codigoPendencias, vector<string> &pre){
                 if (prox_endereco != endereco_para_linha_pre.end())
                 {
                     int linha_pre = prox_endereco->second;
-                    pre[linha_pre] += " erro semântico"; // simbolo nao definido
+                    cout << "Erro semantico na linha " << (linha_pre + 1) << endl;
                 }
                 saida[pendencia] = endereco;
                 pendencia = codigoPendencias[pendencia];

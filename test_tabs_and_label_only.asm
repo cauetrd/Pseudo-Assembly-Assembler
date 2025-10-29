@@ -1,9 +1,28 @@
 START:
 	LOAD	X
 	LOOP:
+
+
+
+
 	ADD	Y
-	STORE	Z
+	
+	
+	
+	ant: 
+	
+	
+	STORE	z
 	STOP
-X:	CONST	1
-Y:	CONST	2
-Z:	SPACE
+
+X:	
+
+
+
+CONST	8
+Y:
+
+	CONST	2
+Z:	
+
+SPACE

@@ -7,3 +7,4 @@ LBL_F:
 STOP
 X: CONST 1
 Y: SPACE
+LBL: LBL:

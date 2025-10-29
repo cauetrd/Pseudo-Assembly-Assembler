@@ -1,3 +1,9 @@
+    MACRO1: MACRO &A, &B 
+    output &a
+    MACRO2 &A, &B 
+    load &a 
+    mult two 
+    endmacro 
 
 mAcro2: MACRO &a, &bfsaf
     load &bfsaf 
@@ -5,18 +11,13 @@ mAcro2: MACRO &a, &bfsaf
     endmacro 
     
     
-    MACRO1: MACRO &A, &B 
-    output &a
-    MACRO2 &A, &B 
-    load &a 
-    mult two 
-    endmacro 
+
     
 
 lbl: 
     macro1 a b 
-  lbl2:  macro1 b b
+  lbl2:  macro1 b two
     stop 
 a: space
 b: space 
-two: const 32
+two: const 36
