@@ -8,6 +8,9 @@ PRINT: MACRO VAL
     OUTPUT VAL
 ENDMACRO
 
+chama_macro: 
+
+
 macrotest x
 LOOP:
     ADD X

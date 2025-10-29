@@ -584,7 +584,7 @@ static void processaLabel(vector<string>& tokens, int &endereco, vector <string>
     }
 }
 
-static void handleSPACE(const vector<string>& tokens, vector<int>& saida, int &endereco)
+static void trataSpace(const vector<string>& tokens, vector<int>& saida, int &endereco)
 {
     int qtd_zeros = 1;
     if (tokens.size() > 1) {
@@ -596,14 +596,14 @@ static void handleSPACE(const vector<string>& tokens, vector<int>& saida, int &e
     }
 }
 
-static void handleCONST(const vector<string>& tokens, vector<int>& saida, int &endereco)
+static void trataConst(const vector<string>& tokens, vector<int>& saida, int &endereco)
 {
     int valor_token = stoi(tokens[1]);
     saida.push_back(valor_token);
     endereco++;
 }
 
-static void handleCOPY(const vector<string>& tokens, vector<int>& saida, int &endereco, int linha_pre, vector<string> &pre)
+static void trataCopy(const vector<string>& tokens, vector<int>& saida, int &endereco, int linha_pre, vector<string> &pre)
 {
     if (tokens.size() != 3 && tokens.size() != 5 && tokens.size() != 7) {
         cout << "Erro sintatico na linha " << (linha_pre + 1) << endl;
@@ -692,7 +692,7 @@ static void handleCOPY(const vector<string>& tokens, vector<int>& saida, int &en
     endereco++;
 }
 
-static void handleSingleArgInstruction(const string& instrucao, const vector<string>& tokens, vector <string> & pre, vector<int>& saida, int &endereco, int & linha_pre)
+static void trataInstrucaoUnica(const string& instrucao, const vector<string>& tokens, vector <string> & pre, vector<int>& saida, int &endereco, int & linha_pre)
 {
     if (tokens.size() < 2) {
         cout << "Erro sintatico na linha " << (linha_pre + 1) << endl;
@@ -715,7 +715,7 @@ static void handleSingleArgInstruction(const string& instrucao, const vector<str
     endereco++;
 }
 
-static void handleInstruction(const string& instrucao, const vector<string>& tokens, vector<int>& saida, int &endereco, vector<string>& pre, int linha_pre)
+static void trataInstrucao(const string& instrucao, const vector<string>& tokens, vector<int>& saida, int &endereco, vector<string>& pre, int linha_pre)
 {
     if (opcode.find(instrucao) == opcode.end()) {
         cout << "Erro sintatico na linha " << (linha_pre + 1) << endl;
@@ -730,9 +730,9 @@ static void handleInstruction(const string& instrucao, const vector<string>& tok
             cout << "Erro sintatico na linha " << (linha_pre + 1) << ": STOP não deve ter argumentos" << endl;
         }
     } else if (instrucao == "COPY") {
-        handleCOPY(tokens, saida, endereco, linha_pre, pre);
+        trataCopy(tokens, saida, endereco, linha_pre, pre);
     } else {
-        handleSingleArgInstruction(instrucao, tokens, pre, saida, endereco, linha_pre);
+        trataInstrucaoUnica(instrucao, tokens, pre, saida, endereco, linha_pre);
     }
 }
 
@@ -757,11 +757,11 @@ vector<int> o1(vector<string> &pre){
         string instrucao = tokens[0];
 
         if (instrucao == "SPACE") {
-            handleSPACE(tokens, saida, endereco);
+            trataSpace(tokens, saida, endereco);
         } else if (instrucao == "CONST") {
-            handleCONST(tokens, saida, endereco);
+            trataConst(tokens, saida, endereco);
         } else {
-            handleInstruction(instrucao, tokens, saida, endereco, pre, linha_pre);
+            trataInstrucao(instrucao, tokens, saida, endereco, pre, linha_pre);
         }
         linha_pre++;
     }
