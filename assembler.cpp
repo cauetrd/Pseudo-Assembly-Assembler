@@ -612,24 +612,34 @@ static void trataCopy(const vector<string>& tokens, vector<int>& saida, int &end
     vector<vector<string>> argumentos;
     vector<string> arg_atual;
     bool temErroSintatico = false;
-
-    /*if (tokens.size() > 1 && tokens[tokens.size() - 1][tokens[tokens.size() - 1].size() - 1] == ',') {
-        cout << "Erro sintatico na linha " << (linha_pre + 1) << endl;
-    }*/
     
     for(int i = 1; i < (int) tokens.size(); i++){
-
         string token_atual = tokens[i];
-        if (i==tokens.size()-1){
-            if (token_atual [token_atual.size()-1] == ','){
+        if(token_atual[token_atual.size()-1] == ','){
+            string token_limpo = token_atual;
+            int count_virgula = 0;
+            while (token_limpo.size() > 0 && token_limpo[token_limpo.size()-1] == ',') {
+                token_limpo = token_limpo.substr(0, token_limpo.size()-1);
+                count_virgula++;
+            }
+            
+            if (!token_limpo.empty()) {
+                arg_atual.push_back(token_limpo);
+                argumentos.push_back(arg_atual);
+            } else {
+                vector<string> empty_arg;
+                argumentos.push_back(empty_arg);
+            }
+            arg_atual.clear();
+            
+
+            for (int j = 1; j < count_virgula; j++) {
+                vector<string> empty_arg;
+                argumentos.push_back(empty_arg);
                 temErroSintatico = true;
             }
-        }
-        if(token_atual[token_atual.size()-1] == ','){
-            arg_atual.push_back(tiraVirgula(token_atual));
-            if (!arg_atual.empty()) {
-                argumentos.push_back(arg_atual);
-                arg_atual.clear();
+            if (i == tokens.size() - 1) {
+                temErroSintatico = true;
             }
         }
         else {
@@ -677,6 +687,7 @@ static void trataCopy(const vector<string>& tokens, vector<int>& saida, int &end
         }
         
         bool temErro = verificaErroLabel(arg);
+        cout << arg << endl;
         if (temErro){
             cout << "Erro lexico na linha " << (linha_pre + 1) << endl;
         }
@@ -692,98 +703,121 @@ static void trataCopy(const vector<string>& tokens, vector<int>& saida, int &end
     }
 }
 
-
 static void trataInstrucaoUnica(const string& instrucao, const vector<string>& tokens,  vector<int>& saida, int &endereco, int & linha_pre)
 {
-    if (tokens.size() == 1) {
+    bool temErroSintatico = false;
+    if (tokens.size() <= 1) {
         cout << "Erro sintatico na linha " << (linha_pre + 1) << endl;
         return;
     }
+    if (tokens.size() > 1 && tokens[tokens.size() - 1][tokens[tokens.size() - 1].size() - 1] == ',') {
+        temErroSintatico = true;
+    }
     
-    else if (tokens.size() == 2 || (tokens.size() == 4 && tokens[2] == "+")) {
+    if (tokens.size() == 2 || (tokens.size() == 4 && tokens[2] == "+")) {
         string arg = tokens[1];
+        bool temVirgula = false;
+        while (!arg.empty() && arg[arg.size() - 1] == ',') {
+            arg.pop_back();
+            temVirgula = true;
+        }
+        if (temVirgula) {
+            temErroSintatico = true;
+        }
+
         bool temErro = verificaErroLabel(arg);
         if (temErro){
             cout << "Erro lexico na linha " << (linha_pre + 1) << endl;
         }
 
-        soma_nas_variaveis[endereco] = adicionarSomaNoVetor(tokens);
+        vector<string> tokens_copy = tokens;
+        tokens_copy[1] = arg;
+        soma_nas_variaveis[endereco] = adicionarSomaNoVetor(tokens_copy);
+
         int valor_arg = valorDaVariavelNoEndereco(arg, endereco, linha_pre);
         saida.push_back(valor_arg);
         endereco_para_linha_pre[endereco] = linha_pre;
         endereco++;
-        return;
-    }
-    
-    if (tokens.size() > 1 && tokens[tokens.size() - 1][tokens[tokens.size() - 1].size() - 1] == ',') {
-        cout << "Erro sintatico na linha " << (linha_pre + 1) << endl;
-    }
-    
-    vector<vector<string>> argumentos;
-    vector<string> arg_atual;
-    
-    for(int i = 1; i < (int) tokens.size(); i++){
-        string token_atual = tokens[i];
-        if(token_atual[token_atual.size()-1] == ','){
-            arg_atual.push_back(tiraVirgula(token_atual));
-            if (!arg_atual.empty()) {
-                argumentos.push_back(arg_atual);
-                arg_atual.clear();
-            }
-        }
-        else {
-            arg_atual.push_back(token_atual);
-        }
-    }
-    
-    if (!arg_atual.empty()) {
-        argumentos.push_back(arg_atual);
-    }
-    
-    if (argumentos.size() == 0) {
-        cout << "Erro sintatico na linha " << (linha_pre + 1) << endl;
-        return;
-    }
-    
-    if (argumentos.size() > 1) {
-        cout << "Erro sintatico na linha " << (linha_pre + 1) << endl;
-    }
-    
-    for(int i = 0; i < argumentos.size(); i++) {
-        if (argumentos[i].empty() || argumentos[i][0].empty()) {
+        if (temErroSintatico) {
             cout << "Erro sintatico na linha " << (linha_pre + 1) << endl;
         }
+        return;
     }
     
-    for(auto& argumento : argumentos) {
-        if (argumento.empty()) {
-            continue; 
-        }
-        
-        string arg = argumento[0];
-        if (arg.empty()) {
-            continue;
-        }
-        
-        for (int i = 0; i < argumento.size(); i++) {
-            if (argumento[i] == "+") {
-                if (i == argumento.size() - 1 || argumento[i + 1].empty()) {
-                    cout << "Erro sintatico na linha " << (linha_pre + 1) << endl;
+    else {
+        temErroSintatico = true; // If we reach this block, it's a syntax error for single-argument instructions
+        vector<vector<string>> argumentos;
+        vector<string> arg_atual;
+        for(int i = 1; i < (int) tokens.size(); i++){
+            string token_atual = tokens[i];
+            if(token_atual[token_atual.size()-1] == ','){
+                string token_limpo = token_atual;
+                int count_virgula = 0;
+                while (token_limpo.size() > 0 && token_limpo[token_limpo.size()-1] == ',') {
+                    token_limpo = token_limpo.substr(0, token_limpo.size()-1);
+                    count_virgula++;
                 }
+                
+                if (!token_limpo.empty()) {
+                    arg_atual.push_back(token_limpo);
+                    argumentos.push_back(arg_atual);
+                } else {
+                    vector<string> empty_arg;
+                    argumentos.push_back(empty_arg);
+                }
+                arg_atual.clear();
+                
+                for (int j = 0; j < count_virgula; j++) {
+                    vector<string> empty_arg;
+                    argumentos.push_back(empty_arg);
+                }
+                if (i == tokens.size() - 1) {
+                }
+            }
+            else {
+                arg_atual.push_back(token_atual);
             }
         }
         
-        bool temErro = verificaErroLabel(arg);
-        if (temErro){
-            cout << "Erro lexico na linha " << (linha_pre + 1) << endl;
+        if (!arg_atual.empty()) {
+            argumentos.push_back(arg_atual);
         }
         
-        if (!arg.empty()) {
-            soma_nas_variaveis[endereco] = adicionarSomaNoVetor(argumento);
-            int valor_arg = valorDaVariavelNoEndereco(arg, endereco, linha_pre);
-            saida.push_back(valor_arg);
-            endereco_para_linha_pre[endereco] = linha_pre;
-            endereco++;
+        
+
+        
+        for(auto& argumento : argumentos) {
+            if (argumento.empty()) {
+                continue; 
+            }
+            
+            string arg = argumento[0];
+            if (arg.empty()) {
+                continue;
+            }
+            
+            for (int i = 0; i < argumento.size(); i++) {
+                if (argumento[i] == "+") {
+                    if (i == argumento.size() - 1 || argumento[i + 1].empty()) {
+                    }
+                }
+            }
+            
+            bool temErro = verificaErroLabel(arg);
+            if (temErro){
+                cout << "Erro lexico na linha " << (linha_pre + 1) << endl;
+            }
+            
+            if (!arg.empty()) {
+                soma_nas_variaveis[endereco] = adicionarSomaNoVetor(argumento);
+                int valor_arg = valorDaVariavelNoEndereco(arg, endereco, linha_pre);
+                saida.push_back(valor_arg);
+                endereco_para_linha_pre[endereco] = linha_pre;
+                endereco++;
+            }
+        }
+        if (temErroSintatico){
+            cout << "Erro sintatico na linha " << linha_pre+1 << endl;
         }
     }
 }

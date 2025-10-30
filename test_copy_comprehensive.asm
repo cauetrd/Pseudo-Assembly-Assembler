@@ -1,6 +1,6 @@
 ; Test comprehensive COPY scenarios
-A: SPACE 10
-B: SPACE 5
+A: SPACE 3
+B: SPACE 3
 C: SPACE 
 D: SPACE 
 
@@ -12,8 +12,8 @@ START: COPY A,      B          ; Basic copy
 ; === COPY WITH EXPRESSIONS ===
 ; Both operands with expressions
        COPY A + 1, B + 2  ; Both with offsets
-       COPY A + 5, B      ; First with offset
-       COPY A, B + 3      ; Second with offset
+       COPY A + 2, B      ; First with offset
+       COPY A, B + 1      ; Second with offset
 
 ; === VARIABLES DEFINED AFTER USE (FORWARD REFERENCES) ===
        COPY X, Y          ; Forward references

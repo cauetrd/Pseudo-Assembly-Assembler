@@ -5,7 +5,7 @@
 
 ; Zero arguments (should be syntax error)
 COPY
-
+COPY ,,,,,,
 ; One argument (should be syntax error)
 COPY A
 COPY A,
