@@ -566,6 +566,19 @@ static void processaLabel(vector<string>& tokens, int &endereco, vector <string>
     string label = tokens[0];
     if (label.empty()) return;
     if (label[(int)label.size() - 1] == ':') {
+        int contadorLabels = 0;
+        for (int i = 0; i < tokens.size(); i++) {
+            if (!tokens[i].empty() && tokens[i][(int)tokens[i].size() - 1] == ':') {
+                contadorLabels++;
+            }
+        }
+        
+        if (contadorLabels > 1) {
+            cout << "Erro sintatico na linha " << (linha_pre + 1) << endl;
+            tokens.clear();
+            return;
+        }
+        
         label = label.substr(0, (int)label.size() - 1);
         bool temErro = verificaErroLabel(label);
         if (temErro){
