@@ -609,16 +609,22 @@ static void trataConst(const vector<string>& tokens, vector<int>& saida, int &en
 
 static void trataCopy(const vector<string>& tokens, vector<int>& saida, int &endereco, int linha_pre)
 {
-    // Check for trailing comma upfront
-    if (tokens.size() > 1 && tokens[tokens.size() - 1][tokens[tokens.size() - 1].size() - 1] == ',') {
-        cout << "Erro sintatico na linha " << (linha_pre + 1) << endl;
-    }
-    
     vector<vector<string>> argumentos;
     vector<string> arg_atual;
+    bool temErroSintatico = false;
+
+    /*if (tokens.size() > 1 && tokens[tokens.size() - 1][tokens[tokens.size() - 1].size() - 1] == ',') {
+        cout << "Erro sintatico na linha " << (linha_pre + 1) << endl;
+    }*/
     
     for(int i = 1; i < (int) tokens.size(); i++){
+
         string token_atual = tokens[i];
+        if (i==tokens.size()-1){
+            if (token_atual [token_atual.size()-1] == ','){
+                temErroSintatico = true;
+            }
+        }
         if(token_atual[token_atual.size()-1] == ','){
             arg_atual.push_back(tiraVirgula(token_atual));
             if (!arg_atual.empty()) {
@@ -636,21 +642,20 @@ static void trataCopy(const vector<string>& tokens, vector<int>& saida, int &end
     }
     
     if (argumentos.size() == 0) {
-        cout << "Erro sintatico na linha " << (linha_pre + 1) << endl;
-        return;
+        temErroSintatico= true;
     }
     
     if (argumentos.size() == 1) {
-        cout << "Erro sintatico na linha " << (linha_pre + 1) << endl;
+        temErroSintatico= true;
     }
     
     if (argumentos.size() > 2) {
-        cout << "Erro sintatico na linha " << (linha_pre + 1) << endl;
+        temErroSintatico= true;
     }
     
     for(int i = 0; i < argumentos.size(); i++) {
         if (argumentos[i].empty() || argumentos[i][0].empty()) {
-            cout << "Erro sintatico na linha " << (linha_pre + 1) << endl;
+            temErroSintatico= true;
         }
     }
     
@@ -666,7 +671,7 @@ static void trataCopy(const vector<string>& tokens, vector<int>& saida, int &end
         for (int i = 0; i < argumento.size(); i++) {
             if (argumento[i] == "+") {
                 if (i == argumento.size() - 1 || argumento[i + 1].empty()) {
-                    cout << "Erro sintatico na linha " << (linha_pre + 1) << endl;
+                    temErroSintatico= true;
                 }
             }
         }
@@ -682,6 +687,9 @@ static void trataCopy(const vector<string>& tokens, vector<int>& saida, int &end
         saida.push_back(valor_arg);
         endereco++;
     }
+    if (temErroSintatico){
+        cout << "Erro sintatico na linha " << linha_pre+1 << endl;
+    }
 }
 
 
@@ -692,14 +700,15 @@ static void trataInstrucaoUnica(const string& instrucao, const vector<string>& t
         return;
     }
     
-    if (tokens.size() == 2 || (tokens.size() == 4 && tokens[2] == "+")) {
-        bool temErro = verificaErroLabel(tokens[1]);
+    else if (tokens.size() == 2 || (tokens.size() == 4 && tokens[2] == "+")) {
+        string arg = tokens[1];
+        bool temErro = verificaErroLabel(arg);
         if (temErro){
             cout << "Erro lexico na linha " << (linha_pre + 1) << endl;
         }
-        
+
         soma_nas_variaveis[endereco] = adicionarSomaNoVetor(tokens);
-        int valor_arg = valorDaVariavelNoEndereco(tokens[1], endereco, linha_pre);
+        int valor_arg = valorDaVariavelNoEndereco(arg, endereco, linha_pre);
         saida.push_back(valor_arg);
         endereco_para_linha_pre[endereco] = linha_pre;
         endereco++;

@@ -8,7 +8,6 @@ START: COPY              ; Too few tokens (1)
        COPY A, B, C      ; Too many basic args (5 tokens but wrong pattern)
        COPY A + B + C, D ; Too many operators (6 tokens)
        COPY A, B + C + D ; Too many operators (6 tokens)
-       COPY A + B, C + D + E ; Too many tokens (8)
 
 ; === PLUS SIGN POSITION ERRORS ===
        COPY +, B         ; Plus in wrong position

@@ -1,5 +1,3 @@
-; Test COPY semantic errors (undefined variables)
-SECTION TEXT
 
 ; === UNDEFINED VARIABLES ===
 START: COPY UNDEFINED1, B    ; First operand undefined
@@ -18,7 +16,5 @@ START: COPY UNDEFINED1, B    ; First operand undefined
 
        STOP
 
-SECTION DATA
 A: CONST 10
 B: SPACE 1
-; Note: UNDEFINED variables are intentionally not defined

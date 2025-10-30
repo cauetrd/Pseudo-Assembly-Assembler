@@ -11,9 +11,9 @@ COPY A
 COPY A,
 
 ; Two arguments (valid cases)
-COPY A, B
+COPY A,   B
 COPY A,B
-COPY A , B
+COPY A   ,B
 COPY  A  ,  B  
 
 ; More than two arguments (should be syntax error)

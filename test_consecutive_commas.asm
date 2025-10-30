@@ -1,0 +1,5 @@
+COPY A,,B
+COPY A,B,
+COPY A,,,B
+A: SPACE 
+B: SPACE
