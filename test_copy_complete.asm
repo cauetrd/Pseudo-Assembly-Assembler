@@ -5,15 +5,15 @@
 
 ; Zero arguments (should be syntax error)
 COPY
-
+COPY ,,,,,,
 ; One argument (should be syntax error)
 COPY A
 COPY A,
 
 ; Two arguments (valid cases)
-COPY A, B
+COPY A,   B
 COPY A,B
-COPY A , B
+COPY A   ,B
 COPY  A  ,  B  
 
 ; More than two arguments (should be syntax error)

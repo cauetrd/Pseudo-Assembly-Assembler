@@ -1,5 +1,5 @@
 x: macro x,y 
-copy   x,y 
+copy   x y 
 stop 
 endmacro 
 lbl: 

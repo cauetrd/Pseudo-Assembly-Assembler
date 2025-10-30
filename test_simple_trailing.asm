@@ -1,0 +1,2 @@
+INPUT A,
+OUTPUT B,,

@@ -1,0 +1,3 @@
+INPUT A,,
+OUTPUT B,,,
+STOP
