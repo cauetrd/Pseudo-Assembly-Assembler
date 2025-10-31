@@ -1,0 +1,10 @@
+L1: L2: L3: L4: ADD X
+M1: M2: M3: M4: M5: SUB Y
+P1:
+Q1: Q2: Q3: Q4: Q5: Q6: LOAD Z
+A_single_label: ADD X
+X: CONST 5
+Y: CONST 2
+Z: CONST 10
+N1: CONST 1
+STOP

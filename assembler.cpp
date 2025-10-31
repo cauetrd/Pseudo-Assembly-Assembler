@@ -566,25 +566,53 @@ static void processaLabel(vector<string>& tokens, int &endereco, vector <string>
     string label = tokens[0];
     if (label.empty()) return;
     if (label[(int)label.size() - 1] == ':') {
-        label = label.substr(0, (int)label.size() - 1);
-        bool temErro = verificaErroLabel(label);
-        if (temErro){
-        cout << "Erro lexico na linha " << (linha_pre + 1) << endl;
-        }
-        if (tabela_simbolos.find(label) == tabela_simbolos.end()) {
-            Simbolo s;
-            s.endereco = endereco;
-            s.pendencia = -1;
-            s.definido = true;
-            tabela_simbolos.insert({label, s});
-        } else {
-            if (tabela_simbolos[label].definido){
-                cout << "Erro semantico na linha " << (linha_pre + 1) << endl;
+ 
+        int contadorLabels = 0;
+        for (int i = 0; i < tokens.size(); ++i) {
+            if (!tokens[i].empty() && tokens[i][tokens[i].size() - 1] == ':') {
+                contadorLabels++;
+            } else {
+                break;
             }
-            tabela_simbolos[label].endereco = endereco;
-            tabela_simbolos[label].definido = true;
         }
-        tokens.erase(tokens.begin());
+
+        if (contadorLabels > 1) {
+            cout << "Erro sintatico na linha " << (linha_pre + 1) << endl;
+        }
+
+ 
+        for (int i = 0; i < contadorLabels; ++i) {
+            if (tokens.empty()){
+                break;
+            } 
+            string labToken = tokens[0];
+            if (labToken.empty() || labToken[labToken.size() - 1] != ':'){
+                break;
+            } 
+            string label = labToken.substr(0, (int)labToken.size() - 1);
+
+            bool temErro = verificaErroLabel(label);
+            if (temErro) {
+                cout << "Erro lexico na linha " << (linha_pre + 1) << endl;
+            }
+
+            if (tabela_simbolos.find(label) == tabela_simbolos.end()) {
+                Simbolo s;
+                s.endereco = endereco;
+                s.pendencia = -1;
+                s.definido = true;
+                tabela_simbolos.insert({label, s});
+            } else {
+                if (tabela_simbolos[label].definido) {
+                    cout << "Erro semantico na linha " << (linha_pre + 1) << endl;
+                }
+                tabela_simbolos[label].endereco = endereco;
+                tabela_simbolos[label].definido = true;
+            }
+
+            tokens.erase(tokens.begin());
+        }
+        
     }
 }
 

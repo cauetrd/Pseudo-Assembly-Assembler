@@ -1,0 +1,3 @@
+L1: L2: ADD X
+X: CONST 5
+STOP
