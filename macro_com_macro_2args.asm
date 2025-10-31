@@ -5,6 +5,7 @@ store &b
 mul &b, &a 
 output &a  
 endmacro 
+
 mul: macro &a, &b 
 load &a 
 mult &b 

@@ -25,6 +25,8 @@ map<string,Simbolo> tabela_simbolos;
 string normalizaExpressao(string &linha)
 {
     string resultado = "";
+    int count_tokens = 0;
+    bool eh_token = false;
 
     for (int i = 0; i < linha.size(); i++)
     {
@@ -48,21 +50,37 @@ string normalizaExpressao(string &linha)
         }
         else if (atual == ',')
         {
-
-            while (!resultado.empty() && resultado.back() == ' ')
+            if (count_tokens <= 1)
             {
-                resultado.pop_back();
+                resultado += atual;
+                resultado += " ";
             }
+            else
+            {
+                while (!resultado.empty() && resultado.back() == ' ')
+                {
+                    resultado.pop_back();
+                }
 
-            resultado += ", ";
+                resultado += ", ";
+            }
 
             while (i + 1 < linha.size() && linha[i + 1] == ' ')
             {
                 i++;
             }
         }
+        else if (atual == ' ' || atual == '\t')
+        {
+            if (eh_token) {
+                count_tokens++;
+                eh_token = false;
+            }
+            resultado += atual;
+        }
         else
         {
+            eh_token = true;
             resultado += atual;
         }
     }
@@ -413,10 +431,8 @@ vector<string> expandeTodasMacros(vector<string> cod)
                                 expanded_code.push_back(tokensMacro[0]);
                             }
                         }
-                        else
-                        {
-                            for (string linha : linha_expandida)
-                            {
+                        else {
+                            for (string linha : linha_expandida) {
                                 expanded_code.push_back(linha);
                             }
                         }
