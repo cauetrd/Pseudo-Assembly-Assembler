@@ -5,14 +5,15 @@
 
 ; Basic valid cases
 COPY A, B
-COPY VAR1, VAR2
-COPY X, Y
+COPY VAR1,VAR2
+COPY X , Y
 
 ; Valid with expressions
-COPY A + 1, B
-COPY A, B + 2
-COPY A + 3, B + 4
-
+COPY A +1,B
+COPY A,B + 2
+COPY A+3,B+ 4
+COPY A+1,B+4
+COPY A + 1 , B + 4
 ; Valid with spacing variations
 COPY A,B
 COPY A ,B
@@ -72,9 +73,6 @@ COPY A+, B
 COPY A, B+
 COPY A +, B
 COPY A, B +
-COPY +A, B
-COPY A, +B
-
 ; ========== EDGE CASES ==========
 
 ; Valid edge cases

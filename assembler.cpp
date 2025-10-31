@@ -687,7 +687,7 @@ static void trataCopy(const vector<string>& tokens, vector<int>& saida, int &end
         }
         
         bool temErro = verificaErroLabel(arg);
-        cout << arg << endl;
+                cout << arg << endl;
         if (temErro){
             cout << "Erro lexico na linha " << (linha_pre + 1) << endl;
         }
@@ -716,12 +716,8 @@ static void trataInstrucaoUnica(const string& instrucao, const vector<string>& t
     
     if (tokens.size() == 2 || (tokens.size() == 4 && tokens[2] == "+")) {
         string arg = tokens[1];
-        bool temVirgula = false;
         while (!arg.empty() && arg[arg.size() - 1] == ',') {
             arg.pop_back();
-            temVirgula = true;
-        }
-        if (temVirgula) {
             temErroSintatico = true;
         }
 
@@ -745,7 +741,7 @@ static void trataInstrucaoUnica(const string& instrucao, const vector<string>& t
     }
     
     else {
-        temErroSintatico = true; // If we reach this block, it's a syntax error for single-argument instructions
+        temErroSintatico = true; 
         vector<vector<string>> argumentos;
         vector<string> arg_atual;
         for(int i = 1; i < (int) tokens.size(); i++){
@@ -767,12 +763,11 @@ static void trataInstrucaoUnica(const string& instrucao, const vector<string>& t
                 }
                 arg_atual.clear();
                 
-                for (int j = 0; j < count_virgula; j++) {
+                for (int j = 1; j < count_virgula; j++) {
                     vector<string> empty_arg;
                     argumentos.push_back(empty_arg);
                 }
-                if (i == tokens.size() - 1) {
-                }
+
             }
             else {
                 arg_atual.push_back(token_atual);
@@ -878,7 +873,7 @@ vector<int> o1(vector<string> &pre){
 }
 
 
-vector<int> o2(vector<int> codigoPendencias, vector<string> &pre){
+vector<int> o2(vector<int> codigoPendencias){
     vector<int> saida = codigoPendencias;
     for(auto [nome, simbolo] : tabela_simbolos){
         int pendencia = simbolo.pendencia;
@@ -920,7 +915,7 @@ int main(int argc, char *argv[])
     arquivo.close();
     vector<string> codigoExpandido = preProcessamento(codigo);
     vector<int> codigoO1 = o1(codigoExpandido);
-    vector<int> codigoO2 = o2(codigoO1, codigoExpandido);
+    vector<int> codigoO2 = o2(codigoO1);
     /*for (string linha : codigoExpandido)
 {
     cout << linha << "\n";

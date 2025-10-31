@@ -1,6 +1,8 @@
+b: 
+space
+
+add a,
+load b,a
 a: 
 Space
-
-add a, b
-b: 
-space 32
+ 

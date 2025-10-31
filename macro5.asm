@@ -4,11 +4,13 @@ STORE FAS
 ADD MFA 
 STORE MFA 
 COPY MFA, FAA
+output faa
 EndMacro
 
-input a 
+input b
 r a b c d 
+stop
 a: const 10 
 b: space 
 c: space 
-d: space
+d: const 20

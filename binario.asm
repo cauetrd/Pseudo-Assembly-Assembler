@@ -1,4 +1,5 @@
 INPUT a
+load a
 jmpn is_neg
 copy zero, neg 
 jmpz is_zero
