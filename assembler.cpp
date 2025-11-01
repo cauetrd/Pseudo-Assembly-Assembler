@@ -438,8 +438,7 @@ vector<string> expandeTodasMacros(vector<string> cod)
                         }
                         argumentos.clear();
                     }
-                    else
-                    {
+                    else {
                         expanded_code.push_back(linha);
                     }
                 }
@@ -561,13 +560,12 @@ int adicionarSomaNoVetor (const vector<string>& tokens){
     return valor;
 }
 
-static void processaLabel(vector<string>& tokens, int &endereco, vector <string> & pre, int linha_pre)
+static void processaLabel(vector<string>& tokens, int &endereco, int linha_pre, vector<int>& o2, vector<int>& o1)
 {
     if (tokens.empty()) return;
     string label = tokens[0];
     if (label.empty()) return;
     if (label[(int)label.size() - 1] == ':') {
- 
         int contadorLabels = 0;
         for (int i = 0; i < tokens.size(); ++i) {
             if (!tokens[i].empty() && tokens[i][tokens[i].size() - 1] == ':') {
@@ -576,12 +574,9 @@ static void processaLabel(vector<string>& tokens, int &endereco, vector <string>
                 break;
             }
         }
-
         if (contadorLabels > 1) {
             cout << "Erro sintatico na linha " << (linha_pre + 1) << endl;
         }
-
- 
         for (int i = 0; i < contadorLabels; ++i) {
             if (tokens.empty()){
                 break;
@@ -608,6 +603,19 @@ static void processaLabel(vector<string>& tokens, int &endereco, vector <string>
                 }
                 tabela_simbolos[label].endereco = endereco;
                 tabela_simbolos[label].definido = true;
+                
+                Simbolo& simbolo = tabela_simbolos[label];
+                int pendencia = simbolo.pendencia;
+                int endereco_simbolo = simbolo.endereco;
+                
+                while(pendencia != -1){
+                    /*
+                    if (o2.size() <= pendencia) {
+                        o2.resize(pendencia + 1, 0);
+                    }*/
+                    o2[pendencia] = endereco_simbolo + soma_nas_variaveis[pendencia];
+                    pendencia = o1[pendencia];
+                }
             }
 
             tokens.erase(tokens.begin());
@@ -616,26 +624,28 @@ static void processaLabel(vector<string>& tokens, int &endereco, vector <string>
     }
 }
 
-static void trataSpace(const vector<string>& tokens, vector<int>& saida, int &endereco)
+static void trataSpace(const vector<string>& tokens, vector<int>& o1, vector<int>& o2, int &endereco)
 {
     int qtd_zeros = 1;
     if (tokens.size() > 1) {
         qtd_zeros = stoi(tokens[1]);
     }
     for(int i= 0; i<qtd_zeros; i++){
-        saida.push_back(0);
+        o1.push_back(0);
+        o2.push_back(0);
         endereco++;
     }
 }
 
-static void trataConst(const vector<string>& tokens, vector<int>& saida, int &endereco)
+static void trataConst(const vector<string>& tokens, vector<int>& o1, vector<int>& o2, int &endereco)
 {
     int valor_token = stoi(tokens[1]);
-    saida.push_back(valor_token);
+    o1.push_back(valor_token);
+    o2.push_back(valor_token);
     endereco++;
 }
 
-static void trataCopy(const vector<string>& tokens, vector<int>& saida, int &endereco, int linha_pre)
+static void trataCopy(const vector<string>& tokens, vector<int>& o1, vector<int>& o2, int &endereco, int linha_pre)
 {
     vector<vector<string>> argumentos;
     vector<string> arg_atual;
@@ -718,7 +728,8 @@ static void trataCopy(const vector<string>& tokens, vector<int>& saida, int &end
         int valor_soma = adicionarSomaNoVetor(argumento);
         soma_nas_variaveis[endereco] = valor_soma;
         int valor_arg = valorDaVariavelNoEndereco(arg, endereco, linha_pre);
-        saida.push_back(valor_arg);
+        o1.push_back(valor_arg);
+        o2.push_back(0);
         endereco++;
     }
     if (temErroSintatico){
@@ -726,7 +737,7 @@ static void trataCopy(const vector<string>& tokens, vector<int>& saida, int &end
     }
 }
 
-static void trataInstrucaoUnica(const string& instrucao, const vector<string>& tokens,  vector<int>& saida, int &endereco, int & linha_pre)
+static void trataInstrucaoUnica(const string& instrucao, const vector<string>& tokens, vector<int>& o1, vector<int>& o2, int &endereco, int & linha_pre)
 {
     bool temErroSintatico = false;
     if (tokens.size() == 1) {
@@ -755,7 +766,8 @@ static void trataInstrucaoUnica(const string& instrucao, const vector<string>& t
         copia_tokens[1] = arg;
         soma_nas_variaveis[endereco] = adicionarSomaNoVetor(copia_tokens);
         int valor_arg = valorDaVariavelNoEndereco(arg, endereco, linha_pre);
-        saida.push_back(valor_arg);
+        o1.push_back(valor_arg);
+        o2.push_back(0);
         endereco_para_linha_pre[endereco] = linha_pre;
         endereco++;
         if (temErroSintatico) {
@@ -764,7 +776,7 @@ static void trataInstrucaoUnica(const string& instrucao, const vector<string>& t
         return;
     }
     else {
-        temErroSintatico = true; 
+        cout << "Erro sintatico na linha " << linha_pre+1 << endl;
         vector<vector<string>> argumentos;
         vector<string> arg_atual;
         for(int i = 1; i < (int) tokens.size(); i++){
@@ -797,7 +809,6 @@ static void trataInstrucaoUnica(const string& instrucao, const vector<string>& t
         if (!arg_atual.empty()) {
             argumentos.push_back(arg_atual);
         }
-
         for(auto& argumento : argumentos) {
             if (argumento.empty()) {
                 continue; 
@@ -806,12 +817,6 @@ static void trataInstrucaoUnica(const string& instrucao, const vector<string>& t
             if (arg.empty()) {
                 continue;
             }
-            for (int i = 0; i < argumento.size(); i++) {
-                if (argumento[i] == "+") {
-                    if (i == argumento.size() - 1 || argumento[i + 1].empty()) {
-                    }
-                }
-            }
             bool temErro = verificaErroLabel(arg);
             if (temErro){
                 cout << "Erro lexico na linha " << (linha_pre + 1) << endl;
@@ -819,25 +824,23 @@ static void trataInstrucaoUnica(const string& instrucao, const vector<string>& t
             if (!arg.empty()) {
                 soma_nas_variaveis[endereco] = adicionarSomaNoVetor(argumento);
                 int valor_arg = valorDaVariavelNoEndereco(arg, endereco, linha_pre);
-                saida.push_back(valor_arg);
+                o1.push_back(valor_arg);
+                o2.push_back(0);
                 endereco_para_linha_pre[endereco] = linha_pre;
                 endereco++;
             }
         }
-        if (temErroSintatico){
-            cout << "Erro sintatico na linha " << linha_pre+1 << endl;
-        }
     }
 }
-
-static void trataInstrucao(const string& instrucao, const vector<string>& tokens, vector<int>& saida, int &endereco, int linha_pre)
+static void trataInstrucao(const string& instrucao, const vector<string>& tokens, vector<int>& o1, vector<int>& o2, int &endereco, int linha_pre)
 {
     if (opcode.find(instrucao) == opcode.end()) {
         cout << "Erro sintatico na linha " << (linha_pre + 1) << endl;
         return; 
     }
     int valor_token = opcode[instrucao];
-    saida.push_back(valor_token);
+    o1.push_back(valor_token);
+    o2.push_back(0);
     endereco++;
     if (instrucao == "STOP") {
         if (tokens.size() > 1) {
@@ -845,42 +848,37 @@ static void trataInstrucao(const string& instrucao, const vector<string>& tokens
             return;
         }
     } else if (instrucao == "COPY") {
-        trataCopy(tokens, saida, endereco, linha_pre);
+        trataCopy(tokens, o1, o2, endereco, linha_pre);
     } else {
-        trataInstrucaoUnica(instrucao, tokens, saida, endereco, linha_pre);
+        trataInstrucaoUnica(instrucao, tokens, o1, o2, endereco, linha_pre);
     }
 }
 
-vector<int> o1(vector<string> &pre){
-    vector<int> saida;
+void passagemUnica (vector<string> &pre, vector<int> &o1, vector<int> &o2){
     int endereco = 0;
     int linha_pre = 0;
+    
     for (string linha : pre) {
         vector<string> tokens = getTokens(linha);
         if (tokens.empty()) {
             linha_pre++;
             continue;
         }
-        processaLabel(tokens, endereco, pre, linha_pre);
+        processaLabel(tokens, endereco, linha_pre, o2, o1);
         if (tokens.empty()) {
             linha_pre++;
             continue;
         }
         string instrucao = tokens[0];
         if (instrucao == "SPACE") {
-            trataSpace(tokens, saida, endereco);
+            trataSpace(tokens, o1, o2, endereco);
         } else if (instrucao == "CONST") {
-            trataConst(tokens, saida, endereco);
+            trataConst(tokens, o1, o2, endereco);
         } else {
-            trataInstrucao(instrucao, tokens, saida, endereco, linha_pre);
+            trataInstrucao(instrucao, tokens, o1, o2, endereco, linha_pre);
         }
         linha_pre++;
     }
-    return saida;
-}
-
-vector<int> o2(vector<int> codigoPendencias){
-    vector<int> saida = codigoPendencias;
     for(auto [nome, simbolo] : tabela_simbolos){
         int pendencia = simbolo.pendencia;
         int endereco = simbolo.endereco;
@@ -891,24 +889,24 @@ vector<int> o2(vector<int> codigoPendencias){
                     int linha_pre = prox_endereco->second;
                     cout << "Erro semantico na linha " << (linha_pre + 1) << endl;
                 }
-                saida[pendencia] = endereco;
-                pendencia = codigoPendencias[pendencia];
-            }
-        }
-        else {
-            while(pendencia != -1){
-                saida[pendencia] = endereco + soma_nas_variaveis[pendencia];
-                pendencia = codigoPendencias[pendencia];
+                pendencia = o1[pendencia];
             }
         }
     }
-    return saida;
 }
 
 int main(int argc, char *argv[])
 {
+    if (argc < 2) {
+        cout << "Nenhum arquivo fornecido." << endl;
+        return 1;
+    }
     string nome_arquivo_entrada = argv[1];
     ifstream arquivo(nome_arquivo_entrada);
+    if (!arquivo.is_open()) {
+        cout << "Nao foi possivel abrir o arquivo '" << nome_arquivo_entrada << "'." << endl;
+        return 1;
+    }
     vector<string> codigo;
     string linha;
     while (getline(arquivo, linha)) {
@@ -916,8 +914,9 @@ int main(int argc, char *argv[])
     }
     arquivo.close();
     vector<string> codigoExpandido = preProcessamento(codigo);
-    vector<int> codigoO1 = o1(codigoExpandido);
-    vector<int> codigoO2 = o2(codigoO1);
+    vector <int> o1;
+    vector <int> o2; 
+    passagemUnica (codigoExpandido, o1, o2);
     string nome_arquivo_sem_extensao = nome_arquivo_entrada;
     int extensao = nome_arquivo_sem_extensao.find_last_of(".");
     if (extensao != std::string::npos) {
@@ -935,18 +934,18 @@ int main(int argc, char *argv[])
     saida_pre.close();
     string nome_arquivo_o1 = nome_arquivo_sem_extensao + ".o1";
     ofstream saida_o1(nome_arquivo_o1);
-    for (int i = 0; i < codigoO1.size(); i++) {
-        saida_o1 << codigoO1[i];
-        if (i < codigoO1.size() - 1) {
+    for (int i = 0; i < o1.size(); i++) {
+        saida_o1 << o1[i];
+        if (i < o1.size() - 1) {
             saida_o1 << " ";
         }
     }
     saida_o1.close();
     string nome_arquivo_o2 = nome_arquivo_sem_extensao + ".o2";
     ofstream saida_o2(nome_arquivo_o2);
-    for (int i = 0; i < codigoO2.size(); i++) {
-        saida_o2 << codigoO2[i];
-        if (i < codigoO2.size() - 1) {
+    for (int i = 0; i < o2.size(); i++) {
+        saida_o2 << o2[i];
+        if (i < o2.size() - 1) {
             saida_o2 << " ";
         }
     }
