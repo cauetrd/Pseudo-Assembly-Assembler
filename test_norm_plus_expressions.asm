@@ -1,9 +1,9 @@
 ; test_norm_plus_expressions.asm
 ; test plus normalization in various contexts
-LOAD A+B
-STORE C  +  D
-ADD E+F
-SUB G   +   H
+LOAD A+
+STORE C  +  
+ADD E+
+SUB G   +  
 JMP X+1
 JMPN Y  +  2
 A: CONST 10

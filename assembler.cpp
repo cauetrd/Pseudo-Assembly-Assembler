@@ -87,23 +87,6 @@ string normalizaExpressao(string &linha)
 
     return resultado;
 }
-
-bool verificaErroLabel(string label)
-{
-    if (isdigit(label[0]))
-    {
-        return true;
-    }
-    for (char carac : label)
-    {
-        if (!isdigit(carac) && !isalpha(carac) && !(carac == '_'))
-        {
-            return true;
-        }
-    }
-    return false;
-}
-
 void maisculas(string &linha)
 {
     for (auto &letra : linha)
@@ -523,7 +506,25 @@ vector<string> preProcessamento(vector<string> codigo)
     return codigoFinal;
 }
 
-int valorDaVariavelNoEndereco(string& var, int endereco, int linha_pre){
+
+bool verificaErroLabel(string label)
+{
+    if (isdigit(label[0]))
+    {
+        return true;
+    }
+    for (char carac : label)
+    {
+        if (!isdigit(carac) && !isalpha(carac) && !(carac == '_'))
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
+
+void valorDaVariavelNoEndereco(string& var, int endereco, int linha_pre, vector <int> &o1, vector <int> &o2){
         int saida;
         if( tabela_simbolos.find(var) == tabela_simbolos.end() ){ //se o símbolo ainda não está na tabela
             Simbolo s;
@@ -533,16 +534,21 @@ int valorDaVariavelNoEndereco(string& var, int endereco, int linha_pre){
             tabela_simbolos.insert({var, s});
             endereco_para_linha_pre[endereco] = linha_pre; 
             saida = -1; //pendência
+            o1.push_back(saida);
+            o2.push_back(0);
         }else{
             if(tabela_simbolos[var].definido){ //se o símbolo já foi definido
                 saida = tabela_simbolos[var].endereco + soma_nas_variaveis[endereco];
+                o1.push_back(saida);
+                o2.push_back(saida);
             }else{
                 saida = tabela_simbolos[var].pendencia;
                 tabela_simbolos[var].pendencia = endereco;
                 endereco_para_linha_pre[endereco] = linha_pre; 
+                o1.push_back(saida);
+                o2.push_back(0);
             }
         }
-        return saida;
 }
 
 int adicionarSomaNoVetor (const vector<string>& tokens){
@@ -727,9 +733,9 @@ static void trataCopy(const vector<string>& tokens, vector<int>& o1, vector<int>
         }
         int valor_soma = adicionarSomaNoVetor(argumento);
         soma_nas_variaveis[endereco] = valor_soma;
-        int valor_arg = valorDaVariavelNoEndereco(arg, endereco, linha_pre);
-        o1.push_back(valor_arg);
-        o2.push_back(0);
+        valorDaVariavelNoEndereco(arg, endereco, linha_pre, o1,o2);
+        //o1.push_back(valor_arg);
+        //o2.push_back(0);
         endereco++;
     }
     if (temErroSintatico){
@@ -765,9 +771,9 @@ static void trataInstrucaoUnica(const string& instrucao, const vector<string>& t
         vector<string> copia_tokens = tokens;
         copia_tokens[1] = arg;
         soma_nas_variaveis[endereco] = adicionarSomaNoVetor(copia_tokens);
-        int valor_arg = valorDaVariavelNoEndereco(arg, endereco, linha_pre);
-        o1.push_back(valor_arg);
-        o2.push_back(0);
+        valorDaVariavelNoEndereco(arg, endereco, linha_pre, o1, o2);
+        //o1.push_back(valor_arg);
+        //o2.push_back(0);
         endereco_para_linha_pre[endereco] = linha_pre;
         endereco++;
         if (temErroSintatico) {
@@ -823,9 +829,9 @@ static void trataInstrucaoUnica(const string& instrucao, const vector<string>& t
             }
             if (!arg.empty()) {
                 soma_nas_variaveis[endereco] = adicionarSomaNoVetor(argumento);
-                int valor_arg = valorDaVariavelNoEndereco(arg, endereco, linha_pre);
-                o1.push_back(valor_arg);
-                o2.push_back(0);
+                valorDaVariavelNoEndereco(arg, endereco, linha_pre, o1, o2);
+                //o1.push_back(valor_arg);
+                //o2.push_back(0);
                 endereco_para_linha_pre[endereco] = linha_pre;
                 endereco++;
             }
@@ -840,7 +846,7 @@ static void trataInstrucao(const string& instrucao, const vector<string>& tokens
     }
     int valor_token = opcode[instrucao];
     o1.push_back(valor_token);
-    o2.push_back(0);
+    o2.push_back(valor_token);
     endereco++;
     if (instrucao == "STOP") {
         if (tokens.size() > 1) {
