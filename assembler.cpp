@@ -907,8 +907,16 @@ vector<int> o2(vector<int> codigoPendencias){
 
 int main(int argc, char *argv[])
 {
+    if (argc < 2) {
+        cout << "Nenhum arquivo fornecido." << endl;
+        return 1;
+    }
     string nome_arquivo_entrada = argv[1];
     ifstream arquivo(nome_arquivo_entrada);
+    if (!arquivo.is_open()) {
+        cout << "Nao foi possivel abrir o arquivo '" << nome_arquivo_entrada << "'." << endl;
+        return 1;
+    }
     vector<string> codigo;
     string linha;
     while (getline(arquivo, linha)) {
