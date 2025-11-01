@@ -891,7 +891,7 @@ vector<int> o2(vector<int> codigoPendencias){
                     int linha_pre = prox_endereco->second;
                     cout << "Erro semantico na linha " << (linha_pre + 1) << endl;
                 }
-                saida[pendencia] = endereco;
+                saida[pendencia] = 0;
                 pendencia = codigoPendencias[pendencia];
             }
         }
